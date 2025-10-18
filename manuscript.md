@@ -1,7 +1,5 @@
 # TeleDerm SnapCheck: Automating Dermatology Image Quality Gating for Safer Teledermatology Triage
 
-![Workflow](reports/figures/telederm_snapcheck_workflow_v3.png)
-
 ## Abstract
 
 ### Background
