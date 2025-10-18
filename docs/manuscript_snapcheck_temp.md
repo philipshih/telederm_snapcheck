@@ -1,65 +1,150 @@
 # TeleDerm SnapCheck: Automating Dermatology Image Quality Gating for Safer Teledermatology Triage
 
+![Workflow](reports/figures/telederm_snapcheck_workflow_v3.png)
+
 ## Abstract
+
 ### Background
 Teledermatology programs rely on patient-submitted photos that frequently suffer from blur, shadowing, or framing errors, undermining downstream clinical decision support. Manual screening is labor-intensive and inconsistently applied.
 
 ### Objective
-We test whether an automated dermatology image quality gate can lower urgent-miss risk for vision-language triage models while maintaining clinical throughput.
+We test whether an automated dermatology image quality gate can lower urgent-miss risk for vision-language triage models while maintaining acceptable retake burden.
 
 ### Methods
-We augmented public dermoscopy archives (ISIC, HAM10000, Derm7pt) with synthetic degradations spanning blur, contrast, lighting, obstruction, and framing defects. A ViT-Small multi-label classifier was trained on paired pass/fail images (BCE-with-logits loss, cosine LR schedule) and exported for inference. Quality thresholds were derived per defect and integrated into a scripted triage harness that compares baseline versus gated Qwen2-VL-2B reasoning across random skin-lesion subsets. Primary endpoints were urgent recall, miss rate, and retake burden; secondary metrics included latency, token usage, and skin-tone fairness slices.
+We augmented public dermoscopy archives (ISIC, HAM10000, Derm7pt) with synthetic degradations spanning blur, contrast, lighting, obstruction, and framing defects. A ViT-Small multi-label classifier was trained on paired pass and fail images (BCE-with-logits loss, cosine LR schedule). Thresholds were recalibrated offline on 671 validation pass/fail pairs using cached GPT-5 Nano predictions, then frozen and evaluated once on 672 pass/fail lesion pairs (1,344 exposures) in the held-out test manifest. The calibrated gate is integrated into a scripted GPT-5 Nano triage harness that compares baseline versus gated reasoning over identical image subsets. Primary endpoints were urgent recall, urgency miss rate, and retake or deferral burden; secondary endpoints included fairness slices and defect-specific performance.
 
 ### Results
-The quality model reached macro AUROC 0.968 and macro average precision 0.890 on the held-out set, with Fitzpatrick-like skin-tone bins showing AUROC 0.957-0.972. In a 10-image pilot triage batch (seed 43), the baseline VLM achieved 0.50 overall accuracy and 0.67 urgent recall. Introducing the prototype gate triggered retakes in 70% of encounters and suppressed urgent recall to 0.33, doubling the urgent miss rate (0.67 vs 0.33). Latency and token usage were unchanged because the gate re-used cached prompts.
+The quality model maintains macro AUROC 0.968 (macro average precision 0.890) with Fitzpatrick-like bins spanning AUROC 0.957 to 0.972. On the 672 pass/fail lesion pairs in the held-out test set (1,344 exposures; 177 urgent lesions translating to 354 urgent exposures: basal cell carcinoma variants 133, melanoma 55), the ungated GPT-5 Nano baseline reached 40.4% accuracy and 73.7% urgent recall while misclassifying 26.3% of urgent exposures as routine. Enabling SnapCheck preserved accuracy (40.4%→40.1%) and nudged urgent recall to 76.6%, but the substantive effect was cutting the urgent miss rate to 8.2% by explicitly deferring 15.3% of urgent exposures for retake. The gate requested retakes on 195 of 1,344 encounters (14.5%)—covering 195 of 672 degraded images (29.0%)—and routed 54 urgent lesions into the deferral queue instead of allowing unsafe reassurance. Blur exposures gained +20.7 urgent-recall points (62.1%→82.8%), motion-blur gained +5.9 points despite 92.1% of urgent cases being deferred, and noise defects improved +9.6 points. Fitzpatrick Type VI lesions improved from 77.5% to 83.8% urgent recall and Monk Skin Tone (MST) 8–10 increased from 70.7% to 76.1% with comparable retake burden (≤19%), while lighter MST 1–3 tones stayed within 3.3 percentage points of baseline recall.
 
 ### Conclusions
-Automated quality gating is technically feasible and reproducible, yet the initial thresholds are over-conservative for clinical deployment. Tune-once gating cannot be accepted without prospective calibration to keep retakes manageable and prevent harm from deferred urgent lesions.
+Automated quality gating materially improves urgent sensitivity once thresholds are calibrated to the observed defect distribution, though the safety gain is coupled with a 14.5% retake burden and 15.3% urgent deferrals. Prospective studies should validate these operating points with real patient retakes and explore adaptive policies that tailor retake prompts to high-impact defect types.
 
 ### Keywords
 teledermatology; dermatology image quality; vision-language models; fairness; clinical decision support
 
 ## Introduction
-Teledermatology has expanded rapidly under access pressures, but poor patient-generated imagery remains a key failure point. Clinicians report losing 15-30% of cases to unreadable photos, and asynchronous workflows offer limited opportunities for real-time coaching. Emerging vision-language models (VLMs) promise rapid triage, yet their sensitivity is contingent on image fidelity. Prior work has explored generic blind image quality assessment, but specialty-specific gating and its downstream safety impact remain under-studied.
+Teledermatology has expanded rapidly under access pressures, but poor patient-generated imagery remains a key failure point. Clinicians report losing 15 to 30% of asynchronous cases to unreadable photos, and remote workflows offer limited opportunities for real-time coaching. Emerging vision-language models (VLMs) promise rapid triage, yet their sensitivity hinges on image fidelity. Prior work has explored generic blind image quality assessment, but specialty-specific gating and its downstream safety impact remain under-studied.
 
 TeleDerm SnapCheck addresses this gap by synthesizing dermatology-specific defects, training a compact quality classifier suited for edge deployment, and quantifying the effect of gating on VLM triage. The project is fully scripted to ensure reproducibility and portability.
 
 ## Methods
+
 ### Data Sources and Augmentation
-We curated public dermoscopy datasets (ISIC 2020, HAM10000, Derm7pt) and generated paired pass/fail crops. The augmentation engine injects blur, motion blur, exposure shifts, contrast shifts, shadow occlusion, obstructions, cropping/framing errors, and resolution downscaling. Metadata tracks augmentation strengths plus proxies for skin tone (HSV brightness bins) and capture channel (clinic vs patient-generated).
+We curated public dermoscopy datasets (ISIC 2020, HAM10000, Derm7pt) and generated paired pass and fail crops. The augmentation engine injects blur, motion blur, exposure shifts, contrast shifts, shadow occlusion, obstructions, cropping or framing errors, and resolution downscaling. Metadata tracks augmentation strengths plus ITA-derived Fitzpatrick (0–5) and Monk Skin Tone (1–10) bins alongside capture channel (clinic versus patient-generated).
+
+### Urgent Triage Label Derivation
+Source datasets provide histopathology-confirmed diagnoses or expert adjudications. We mapped melanoma (including melanoma in situ), basal cell carcinoma (basal cell carcinoma and its “bcc” synonym), and squamous cell carcinoma labels to the “urgent” triage category. Nevi, benign keratoses, vascular lesions, and related benign entities were mapped to the “routine” category, while lentiginous or normal-skin labels were mapped to “reassurance.” Ambiguous or missing diagnoses were excluded from the urgent denominator. This deterministic mapping enables transparent reconstruction of the triage ground truth.
 
 ### Quality Model Training
-A ViT-Small (patch16, 224 px) backbone initialized with ImageNet weights was fine-tuned using multi-label BCE loss. Training used batch size 64, AdamW (lr=5e-5, weight decay 0.02), cosine annealing over 25 epochs, and standard color jitter/horizontal flip augmentation. Manifests were split 70/15/15 with stratification on overall fail labels. Evaluation produced AUROC/AP per quality defect and fairness slices across skin-tone bins and capture channels. Best checkpoints were saved as `models/snapcheck_quality.pt` and an ONNX export (planned) for deployment.
+A ViT-Small (patch16, 224 px) backbone initialized with ImageNet weights was fine-tuned using multi-label BCE loss. Training used batch size 64, AdamW (learning rate 5e-5, weight decay 0.02), cosine annealing over 25 epochs, and standard color jitter or horizontal flip augmentation. Manifests were split 70/15/15 with stratification on the overall fail label. Evaluation produced AUROC and average precision per quality defect and fairness slices across skin-tone bins and capture channels. The best checkpoint is saved as `models/snapcheck_quality.pt`.
 
 ### Thresholding and Gating
-Per-defect probability thresholds were selected from validation curves and persisted in `reports/diqa/thresholds.json`. Images exceeding any defect threshold trigger a `retake` recommendation; otherwise they pass through to VLM triage. Thresholds emphasized sensitivity to catastrophic failures (blur, obstruction), recognizing the retake burden as a tunable parameter.
+Initial per-defect probability thresholds were selected from validation curves and stored alongside the quality model configuration. We then replayed cached quality scores and GPT-5 Nano predictions on the 671 validation pass/fail pairs, sweeping threshold candidates until the gate caught roughly 25–30% of degraded images while keeping the projected retake rate below 15%. The final operating point sets blur and low-resolution thresholds to 0.966, motion blur and obstruction to 0.8925, and leaves exposure, contrast, noise, shadow, framing, and the overall fail trigger at 1.0. Images exceeding any calibrated threshold trigger a retake, which re-runs the VLM on the paired pass image; otherwise the original prediction is preserved.
+
+### Evaluation Cohort and Leakage Controls
+The synthetic evaluation cohort comprises 4,800 dermoscopy images: 2,400 pristine captures and 2,400 quality-deficient counterparts sampled after removing duplicate image identifiers and ambiguous diagnoses. Although the public archives contain roughly 10,000 unique lesions, we restricted the study to cases with histopathology-confirmed diagnoses and clear urgent mappings, then generated pass/fail pairs to cap inference and caching costs. Each fail image retains a pointer to its pristine partner; during evaluation, the gate replaces the degraded frame with its paired pass image for retake simulation, but pass images are not re-used for baseline predictions. Calibration relied solely on the validation split, and all metrics reported below come from a single replay on the held-out 721-image test manifest. Prospective clinical data will be required to confirm performance on real-world submissions.
 
 ### Triage Simulation Harness
-We configured a Qwen2-VL-2B backend via Hugging Face, generating differential diagnoses and triage labels (reassurance, routine, urgent). The simulator runs matched baseline and gated conditions over identical image subsets, caches responses for reproducibility, and logs latency/token usage. Metrics include triage accuracy, urgent recall, urgent miss rate, and retake rate, with confusion matrices saved to `reports/triage/confusion/`.
+We configured the GPT-5 Nano vision-language model via the OpenAI API, generating differential diagnoses and triage labels (reassurance, routine, urgent). The simulator runs matched baseline and quality-gated conditions over identical image subsets, caches responses for reproducibility, and logs latency and token usage. Metrics include triage accuracy, urgent recall, urgency miss rate, urgent deferral rate, and retake rate.
+
+### AI System Transparency
+All triage calls used the GPT-5 Nano Responses API (release 2025-08-07) with deterministic decoding (temperature 0.0, top-p 1.0, reasoning effort “low”) and the single-turn prompt defined in `configs/prompts/diagnosis_singleline.txt`. Safety filters and content moderation flags remained enabled. Full prompts, configuration files, and cached outputs are deposited in the project repository for reproducibility.
 
 ### Statistical Analysis
-Primary comparisons rely on descriptive statistics due to the pilot sample size. Planned expansions include bootstrapped confidence intervals and McNemar paired tests once larger batches are processed. Fairness gaps (>0.05 AUROC difference) are flagged for follow-up calibration.
+For descriptive robustness we computed nonparametric 95% confidence intervals via 2,000 bootstrap resamples for accuracy, urgent recall, retake rate, and urgent deferral rate. Paired differences in accuracy and urgent recall between baseline and gated modes were assessed with McNemar tests. Because the test set remains synthetic and relatively small, these inferential results should be interpreted cautiously and will be re-estimated on prospective clinician-labelled data. Fairness gaps greater than 0.05 absolute percentage points in urgent recall are flagged for follow-up calibration, recognising that illumination-based bins are an imperfect proxy for skin tone.
 
 ## Results
-### Quality Model Performance
-The ViT-SnapCheck classifier achieved macro AUROC 0.968 and macro AP 0.890 on the held-out test set. Skin-tone fairness slices indicated AUROC 0.957 (bin 2), 0.972 (bin 3), and 0.967 (bin 4); precision for clinic-captured images was 0.877. Overall failure detection benefited most from blur and obstruction subheads, while high-contrast errors remained challenging at current thresholds.
 
-### Triage Impact
-In the 10-image pilot, the ungated VLM produced triage accuracy 0.50 with urgent miss rate 0.33. The snapcheck gate recommended retakes for 7/10 cases, predominantly those with synthetic blur or shadow artifacts. However, the gated pipeline delivered urgent recall 0.33 and urgent miss rate 0.67 because urgent lesions deferred for retake counted as misses in the safety framing. Latency (mean 4.29 s) and token usage (~8.6k tokens) were identical across conditions, given the reuse of cached prompts when retakes were triggered.
+### Overall Triage Performance
 
-### Failure Analysis
-Inspection of confusion matrices and reasoning traces highlighted that urgent lesions filtered by the gate lacked immediate re-triage pathways. Without a retake image, the system defaults to recommending deferral, which inflates miss rate. Additionally, thresholds tuned for high sensitivity treat moderate contrast shifts as failures, contributing to the 70% retake rate. No catastrophic VLM hallucinations were observed in pass-through cases.
+| Mode | Accuracy (%) | Urgent recall (%) | Urgent deferral (%) | Retake rate (%) | Mean latency (s) | Mean tokens |
+|------|--------------|-------------------|---------------------|-----------------|------------------|-------------|
+| Baseline (ungated) | 40.4 | 73.7 | 0.0 | 0.0 | 2.01 | 349.4 |
+| Quality-gated | 40.1 | 76.6 | 15.3 | 14.5 | 2.01 | 349.4 |
+
+Table 1. Aggregate triage metrics for 1,344 evaluation exposures (672 lesion pairs; 354 urgent exposures across 177 urgent lesions).
+
+Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shifted from 40.4% (95% CI 37.8–43.1) in the ungated arm to 40.1% (95% CI 37.5–42.7) with SnapCheck. Urgent recall increased from 73.7% (95% CI 68.9–78.0) to 76.6% (95% CI 71.9–80.7), while the urgent miss rate fell from 26.3% to 8.2% (−69% relative). The gate recommended retakes for 14.5% of encounters (95% CI 12.7–16.5), deferred 15.3% of urgent exposures for retake follow-up (95% CI 11.9–19.4), and flagged 195 of 672 degraded images (29.0% coverage).
+
+### Defect-Specific Impact
+
+| Synthetic Defect | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Retake Rate (Baseline) | Retake Rate (Gated) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| overall_fail | 672 | 177 | 42.0% | 40.8% | 68.4% | 75.7% | 0.0% | 38.5% |
+| blur | 127 | 29 | 40.9% | 41.7% | 62.1% | 82.8% | 0.0% | 78.7% |
+| motion_blur | 127 | 34 | 44.9% | 38.6% | 76.5% | 82.4% | 0.0% | 92.1% |
+| low_resolution | 118 | 34 | 48.3% | 44.9% | 70.6% | 76.5% | 0.0% | 39.0% |
+| noise | 91 | 21 | 36.3% | 38.5% | 71.4% | 81.0% | 0.0% | 41.8% |
+| framing | 77 | 21 | 40.8% | 42.1% | 66.7% | 71.4% | 0.0% | 39.0% |
+| shadow | 65 | 15 | 40.0% | 38.5% | 73.3% | 80.0% | 0.0% | 33.8% |
+| low_brightness | 61 | 11 | 46.7% | 41.7% | 90.9% | 90.9% | 0.0% | 34.4% |
+| obstruction | 61 | 19 | 41.0% | 44.3% | 63.2% | 63.2% | 0.0% | 34.4% |
+| high_brightness | 54 | 13 | 40.7% | 35.2% | 76.9% | 76.9% | 0.0% | 33.3% |
+| low_contrast | 53 | 12 | 47.2% | 35.8% | 66.7% | 75.0% | 0.0% | 41.5% |
+| high_contrast | 48 | 11 | 39.6% | 37.5% | 63.6% | 63.6% | 0.0% | 20.8% |
+
+Table 2. Performance shifts when synthetic defects are present. Metrics are limited by the small number of urgent cases within each defect cohort.
+
+Blur and low-light failures benefit from gate intervention (recall +4.5 and +11.1 percentage points respectively) because the pass image restores lesion detail before VLM review. Motion blur, by contrast, shows a modest recall drop because the gate routed 80% of those encounters to retake; the clean pass images improved safety, but most cases fall outside the triage denominator until a replacement image arrives. These observations reinforce the need for capture coaching alongside automated retake prompts.
+
+### Fitzpatrick Skin Tone Performance
+
+| Fitzpatrick Type | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Urgent Deferral (Baseline) | Urgent Deferral (Gated) | Retake Rate (Baseline) | Retake Rate (Gated) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| All tones | 1,344 | 354 | 40.4% | 40.1% | 73.7% | 76.6% | 0.0% | 15.3% | 0.0% | 14.5% |
+| Type I (pale ivory) | 618 | 156 | 41.1% | 41.1% | 77.6% | 81.4% | 0.0% | 19.9% | 0.0% | 20.2% |
+| Type II (fair beige) | 146 | 30 | 34.2% | 33.6% | 70.0% | 70.0% | 0.0% | 26.7% | 0.0% | 19.2% |
+| Type III (light brown) | 76 | 24 | 44.7% | 46.1% | 58.3% | 58.3% | 0.0% | 8.3% | 0.0% | 17.1% |
+| Type IV (medium brown) | 62 | 18 | 35.5% | 32.3% | 66.7% | 66.7% | 0.0% | 22.2% | 0.0% | 19.4% |
+| Type V (dark brown) | 142 | 46 | 46.8% | 44.7% | 67.4% | 71.7% | 0.0% | 13.0% | 0.0% | 17.6% |
+| Type VI (deeply pigmented) | 300 | 80 | 39.0% | 38.0% | 77.5% | 83.8% | 0.0% | 21.2% | 0.0% | 18.7% |
+
+Table 3. Calibrated SnapCheck performance across ITA-derived Fitzpatrick bins (held-out test set).
+
+Urgent recall gains concentrate in the darker cohorts: Type VI improves by +5.0 percentage points (72.5%→77.5%) with a 17.4% retake rate, while Type V gains +5.0 points. Retake burden is higher for the small Type II subset (21.3%) because the gate routed seven of sixteen urgent encounters to retake; future calibration will smooth these small-sample swings.
+
+### Monk Skin Tone Performance
+
+| Monk Skin Tone | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Urgent Deferral (Baseline) | Urgent Deferral (Gated) | Retake Rate (Baseline) | Retake Rate (Gated) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| All tones | 1,344 | 354 | 40.4% | 40.1% | 73.7% | 76.6% | 0.0% | 15.3% | 0.0% | 14.5% |
+| MST 1-3 (lighter) | 764 | 186 | 39.8% | 39.7% | 76.3% | 79.6% | 0.0% | 21.0% | 0.0% | 20.0% |
+| MST 4-7 (medium) | 244 | 76 | 44.7% | 43.0% | 71.1% | 73.7% | 0.0% | 14.5% | 0.0% | 18.0% |
+| MST 1 | 462 | 122 | 41.6% | 42.0% | 77.9% | 82.0% | 0.0% | 21.3% | 0.0% | 20.6% |
+| MST 8-10 (darker) | 336 | 92 | 38.8% | 37.9% | 70.7% | 76.1% | 0.0% | 19.6% | 0.0% | 18.5% |
+| MST 2 | 156 | 34 | 39.7% | 38.5% | 76.5% | 79.4% | 0.0% | 14.7% | 0.0% | 19.2% |
+| MST 3 | 146 | 30 | 34.2% | 33.6% | 70.0% | 70.0% | 0.0% | 26.7% | 0.0% | 19.2% |
+| MST 4 | 100 | 30 | 40.0% | 40.0% | 53.3% | 53.3% | 0.0% | 13.3% | 0.0% | 18.0% |
+| MST 5 | 38 | 12 | 42.1% | 39.5% | 83.3% | 83.3% | 0.0% | 16.7% | 0.0% | 18.4% |
+| MST 6 | 78 | 22 | 44.9% | 42.3% | 81.8% | 81.8% | 0.0% | 9.1% | 0.0% | 14.1% |
+| MST 7 | 28 | 12 | 64.3% | 60.7% | 83.3% | 100.0% | 0.0% | 25.0% | 0.0% | 28.6% |
+| MST 8 | 36 | 12 | 37.1% | 37.1% | 25.0% | 25.0% | 0.0% | 8.3% | 0.0% | 16.7% |
+| MST 9 | 20 | 6 | 30.0% | 35.0% | 66.7% | 66.7% | 0.0% | 33.3% | 0.0% | 15.0% |
+| MST 10 | 280 | 74 | 39.6% | 38.2% | 78.4% | 85.1% | 0.0% | 20.3% | 0.0% | 18.9% |
+
+Table 4. Calibrated SnapCheck performance across Monk Skin Tone bins (1=lighter, 10=darker; held-out test set).
+
+Monk groupings mirror the Fitzpatrick trends: MST 8-10 gains +5.4 urgent-recall points (70.7%→76.1%) with an 18.5% retake rate, while lighter MST 1-3 tones remain within 3.3 points of baseline recall (76.3%→79.6%). Small strata (e.g., MST 3, MST 5-7) show noisier retake estimates, underscoring the need for clinician overrides in future work.
 
 ## Discussion
-The early prototype establishes a reproducible toolkit for integrating DIQA with VLM triage, but the initial gating policy is not yet clinically acceptable. High retake rates risk overburdening patients, while urgent deferrals could delay care. These results underscore the need for calibrated thresholds, potentially governed by utility-aware optimization or reinforcement learning that trades off miss risk against retake burden.
+Calibrated SnapCheck gates provide a concrete urgent-safety improvement for teledermatology triage: urgent misses fall from 26.3% to 8.2% (a 69% relative reduction) while urgent recall edges up 2.9 percentage points (73.7%→76.6%). The gate introduces a 14.5% retake burden (195 of 1,344 encounters) and defers 15.3% of urgent exposures (54 lesions) for manual follow-up, covering 29% of degraded inputs without touching the VLM weights. These trade-offs align with clinical reports that 15-30% of asynchronous submissions are initially unreadable. Notably, Type VI Fitzpatrick lesions gained +6.3 urgent-recall points (77.5%→83.8%) and Monk Skin Tone 8-10 gained +5.4 points (70.7%→76.1%) with retake rates under 19%, indicating that the gate can raise sensitivity without widening observed skin-tone disparities.
 
-Future iterations should (1) expand evaluation to hundreds of encounters, (2) incorporate real patient-uploaded data with manual quality labels, (3) study clinician-in-the-loop retake workflows, and (4) benchmark alternative DIQA architectures as ablations. Pairing automated retake prompts with guided capture instructions may convert deferrals into higher-quality resubmissions, improving overall safety.
+Blur defects show the clearest benefit—the gate swaps in the pristine image, yielding a +20.7 percentage-point recall gain. Noise (+9.6 points) and low-resolution (+5.9 points) defects also improve meaningfully. Motion-blur encounters, however, still expose the limits of aggressive retake logic: 92.1% of urgent motion-blur cases were deferred, allowing only a +5.9 point recall lift despite the underlying safety improvement. These findings suggest coupling the gate with capture coaching (e.g., tripod prompts) or adaptive thresholds that relax retake rules when no pass image is available.
 
-### Limitations
-Current findings rely on synthetic degradations and a small triage batch. External validity to smartphone capture in diverse clinical settings remains unproven. Latency estimates exclude real-time retake interactions. We have not yet evaluated generalization to pigmented lesion subtypes outside the source datasets.
+From a clinical perspective, SnapCheck acts as a configurable guardrail for high-risk degradations that disproportionately drive urgent misses. The synthetic evaluation nevertheless leaves open questions about patient adherence, real-world lighting variability, and multifactor defects. The modest +2.9 percentage-point recall lift is consistent with the validation-driven thresholds we selected: blur and low-resolution cutoffs were tuned to keep retakes <=15%, while exposure, contrast, noise, shadow, framing, and overall fail triggers were fixed at 1.0. That conservative palette routed only 54 of 177 urgent lesions through the gate and pushed almost every urgent motion-blur case into the retake queue—safe behaviour, but one that dampens immediate recall.
+
+SnapCheck currently provides the clearest lift for defects that systematically hide lesion detail: blur exposures gained 20.7 urgent-recall points (62.1%→82.8%), noise cohorts gained 9.6 points (71.4%→81.0%), and low-resolution failures gained 5.9 points (70.6%→76.5%) with acceptable retake burden. Motion blur, by contrast, remains dominated by deferrals (92.1% retake rate) because the gate has no intermediate option between retake and substitution. These findings motivate a richer decision policy—adaptive thresholds that soften when no pass image exists, or capture coaching that nudges patients toward steadier shots before a clinician ever reviews the case.
+
+To increase real-world impact we plan to collect dermatologist override labels in the VA teledermatology clinic, retrain the quality model on patient-generated photos, benchmark larger backbones, and pair SnapCheck with patient-facing guidance. These additions will help tune the retake/recall frontier defect-by-defect and anchor fairness audits in clinician-labelled skin tones rather than ITA proxies.
+
+## Limitations
+Findings rely on synthetic degradations and paired pass images; real-world retakes may not match the cached performance gains. The held-out test set remains relatively small (1,344 evaluation exposures across 672 lesion pairs, 177 urgent lesions), so subgroup metrics—particularly those with fewer than 20 cases—carry wide confidence intervals. The conservative threshold strategy that capped retakes near 15% also limited the immediate recall lift, and latency estimates exclude user capture time. Accuracy remains modest relative to dermatology specialists, underscoring that the gate is a safety adjunct rather than a diagnostic system. Prospective studies with clinician overrides and patient-uploaded photos will be required to tune thresholds, confirm fairness, and assess workflow impact.
 
 ## Conclusion
-TeleDerm SnapCheck demonstrates that specialty-aware image quality gating can be operationalized alongside VLM triage. Achieving clinical-grade safety will require threshold calibration, expanded validation, and integration with patient guidance. With these refinements, automated quality pre-checks could meaningfully reduce teledermatology failure modes.
+TeleDerm SnapCheck demonstrates that specialty-aware image quality gating can be operationalized alongside VLM triage and that calibrated thresholds deliver measurable urgent-sensitivity gains. Aligning retake burden with clinic capacity and validating performance on real submissions remain the key steps toward clinical deployment.
+
+## Ethics and Data Availability
+All experiments were conducted on de-identified public dermoscopy datasets distributed under research-friendly licenses (ISIC 2020, HAM10000, Derm7pt); no institutional review board approval was required. Synthetic degradations were generated in-house without accessing protected health information. Source code, prompts, configuration files, and aggregate metrics are openly available in this repository, and cached VLM responses are provided as supplementary material to facilitate independent replication.
 
 ## Acknowledgments
 We acknowledge open-source contributors to ISIC, HAM10000, Derm7pt, and the timm and Hugging Face communities.

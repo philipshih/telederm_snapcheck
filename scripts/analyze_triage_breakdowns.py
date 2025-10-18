@@ -15,9 +15,11 @@ Example:
 from __future__ import annotations
 
 import argparse
+import math
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
+from statistics import NormalDist
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import pandas as pd
 
@@ -30,6 +32,27 @@ from snapcheck.quality_model import TARGET_LABELS
 DEFAULT_TRIAGE_DETAIL = Path("reports/triage/triage_detail.csv")
 DEFAULT_MANIFEST = Path("data/quality/manifest.csv")
 DEFAULT_OUTPUT_DIR = Path("reports/triage/breakdowns")
+
+FITZPATRICK_LABELS: Dict[int, str] = {
+    0: "Type I (pale ivory)",
+    1: "Type II (fair beige)",
+    2: "Type III (light brown)",
+    3: "Type IV (medium brown)",
+    4: "Type V (dark brown)",
+    5: "Type VI (deeply pigmented)",
+}
+
+
+def _wilson_interval(successes: int, n: int, confidence: float = 0.95) -> Tuple[float, float]:
+    if n <= 0:
+        return float("nan"), float("nan")
+    confidence = max(min(confidence, 0.999), 0.001)
+    z = NormalDist().inv_cdf(0.5 + confidence / 2.0)
+    phat = successes / n
+    denom = 1 + (z ** 2) / n
+    center = (phat + (z ** 2) / (2 * n)) / denom
+    margin = (z * math.sqrt((phat * (1 - phat) + (z ** 2) / (4 * n)) / n)) / denom
+    return max(0.0, center - margin), min(1.0, center + margin)
 
 
 def parse_args() -> argparse.Namespace:
@@ -58,6 +81,12 @@ def parse_args() -> argparse.Namespace:
         default="both",
         help="Which triage outputs to analyse (default: %(default)s)",
     )
+    parser.add_argument(
+        "--skin-tone-overrides",
+        type=Path,
+        default=Path("data/fairness/fitzpatrick_overrides.csv"),
+        help="Optional CSV with manual Fitzpatrick/Monk annotations (default: %(default)s)",
+    )
     return parser.parse_args()
 
 
@@ -83,7 +112,7 @@ def _normalize_triage_value(value: object) -> Tuple[str, bool]:
     return text, False
 
 
-def _load_inputs(triage_path: Path, manifest_path: Path) -> pd.DataFrame:
+def _load_inputs(triage_path: Path, manifest_path: Path, overrides_path: Optional[Path]) -> pd.DataFrame:
     if not triage_path.exists():
         raise FileNotFoundError(f"Triage detail CSV not found: {triage_path}")
     if not manifest_path.exists():
@@ -102,6 +131,28 @@ def _load_inputs(triage_path: Path, manifest_path: Path) -> pd.DataFrame:
     missing_manifest = merged["manifest_image_path"].isna().sum()
     if missing_manifest:
         print(f"[warn] Missing manifest metadata for {missing_manifest} triage rows.")
+
+    if overrides_path and overrides_path.exists():
+        overrides = pd.read_csv(overrides_path)
+        if "image_path" not in overrides.columns:
+            raise ValueError("Overrides CSV must include an 'image_path' column.")
+        overrides = overrides.copy()
+        overrides["image_key"] = overrides["image_path"].map(_normalize_path)
+        overrides = overrides.drop_duplicates("image_key", keep="last")
+        merged = merged.merge(
+            overrides.drop(columns=["image_path"]),
+            on="image_key",
+            how="left",
+            suffixes=("", "_override"),
+        )
+        for col in ("fitzpatrick_type", "monk_skin_tone"):
+            override_col = f"{col}_override"
+            if override_col in merged.columns:
+                merged[col] = merged[override_col].combine_first(merged.get(col))
+        merged = merged.drop(columns=[c for c in merged.columns if c.endswith("_override")])
+    elif overrides_path:
+        print(f"[info] Skin-tone override file not found at {overrides_path}; skipping overrides.")
+
     return merged
 
 
@@ -155,8 +206,13 @@ def _compute_mode_metrics(df: pd.DataFrame, triage_col: str) -> Dict[str, float]
     retake_flags_list: List[bool] = []
     quality_fail = df.get("quality_fail")
     for idx, value in enumerate(predictions_raw):
-        label, _ = _normalize_triage_value(value)
-        is_retake = bool(quality_fail.iloc[idx]) if quality_fail is not None else False
+        label, normalized_retake = _normalize_triage_value(value)
+        if normalized_retake:
+            is_retake = True
+        elif triage_col != "model_triage":
+            is_retake = bool(quality_fail.iloc[idx]) if quality_fail is not None else False
+        else:
+            is_retake = False
         labels_list.append(label)
         retake_flags_list.append(is_retake)
     labels = pd.Series(labels_list, index=df.index)
@@ -174,22 +230,18 @@ def _compute_mode_metrics(df: pd.DataFrame, triage_col: str) -> Dict[str, float]
 
     triaged_fraction = triaged_cases / max(1, total_known_truth)
 
-    urgent_mask = valid_mask & (truth == "urgent")
-    urgent_total = int(urgent_mask.sum())
+    urgent_truth_mask = truth == "urgent"
+    urgent_total = int(urgent_truth_mask.sum())
     if urgent_total:
-        urgent_tp = int(((labels == "urgent") & urgent_mask).sum())
-        urgent_fn = urgent_total - urgent_tp
-        urgent_recall = urgent_tp / (urgent_tp + urgent_fn) if (urgent_tp + urgent_fn) else float("nan")
-        urgent_miss = urgent_fn / (urgent_tp + urgent_fn) if (urgent_tp + urgent_fn) else float("nan")
+        urgent_tp = int(((labels == "urgent") & urgent_truth_mask).sum())
+        urgent_deferrals = int((urgent_truth_mask & retake_flags).sum())
+        urgent_miss = max(urgent_total - urgent_tp - urgent_deferrals, 0)
+        urgent_recall = urgent_tp / urgent_total
+        urgent_miss = urgent_miss / urgent_total
+        urgent_deferral_rate = urgent_deferrals / urgent_total
     else:
         urgent_recall = float("nan")
         urgent_miss = float("nan")
-
-    total_urgent_truth = int((truth == "urgent").sum())
-    if total_urgent_truth:
-        urgent_deferrals = int(((truth == "urgent") & retake_flags).sum())
-        urgent_deferral_rate = urgent_deferrals / total_urgent_truth
-    else:
         urgent_deferral_rate = float("nan")
 
     retake_rate = float(retake_flags.mean()) if total_cases else float("nan")
@@ -291,6 +343,95 @@ def _build_defect_rows(df: pd.DataFrame, modes: Iterable[Tuple[str, str]]) -> Li
     return records
 
 
+def _format_skin_tone_label(bin_value: Union[int, float, None]) -> str:
+    if bin_value is None or pd.isna(bin_value):
+        return "Unknown"
+    try:
+        key = int(bin_value)
+    except (TypeError, ValueError):
+        return str(bin_value)
+    return FITZPATRICK_LABELS.get(key, f"Type {key}")
+
+
+def _build_skin_tone_rows(df: pd.DataFrame, modes: Iterable[Tuple[str, str]]) -> List[Dict[str, object]]:
+    col_name = "fitzpatrick_type" if "fitzpatrick_type" in df.columns else "skin_tone_bin"
+    if col_name not in df.columns:
+        print("[warn] Column 'fitzpatrick_type' missing; skipping Fitzpatrick breakdown.")
+        return []
+
+    records: List[Dict[str, object]] = []
+    records.append(
+        {
+            "group_type": "skin_tone",
+            "group_value": "all",
+            "skin_tone_label": "All tones",
+            **_summarise_subset(df, modes),
+        }
+    )
+
+    grouped = df.groupby(col_name, dropna=False)
+    for bin_value, subset in grouped:
+        label = _format_skin_tone_label(bin_value)
+        record = {
+            "group_type": "skin_tone",
+            "group_value": "unknown" if pd.isna(bin_value) else int(bin_value),
+            "skin_tone_label": label,
+            **_summarise_subset(subset, modes),
+        }
+        records.append(record)
+    return records
+
+
+def _build_monk_rows(df: pd.DataFrame, modes: Iterable[Tuple[str, str]]) -> List[Dict[str, object]]:
+    if "monk_skin_tone" not in df.columns:
+        return []
+
+    records: List[Dict[str, object]] = []
+    records.append(
+        {
+            "group_type": "monk_skin_tone",
+            "group_value": "all",
+            "monk_label": "All tones",
+            **_summarise_subset(df, modes),
+        }
+    )
+
+    def monk_label(value: Union[int, float, None]) -> str:
+        if pd.isna(value) or value in {-1, None}:
+            return "Unknown"
+        return f"MST {int(value)}"
+
+    grouped = df.groupby("monk_skin_tone", dropna=False)
+    for tone_value, subset in grouped:
+        record = {
+            "group_type": "monk_skin_tone",
+            "group_value": "unknown" if pd.isna(tone_value) else int(tone_value),
+            "monk_label": monk_label(tone_value),
+            **_summarise_subset(subset, modes),
+        }
+        records.append(record)
+
+    buckets = [
+        ("MST 1-3 (lighter)", [1, 2, 3]),
+        ("MST 4-7 (medium)", [4, 5, 6, 7]),
+        ("MST 8-10 (darker)", [8, 9, 10]),
+    ]
+    for label, values in buckets:
+        subset = df[df["monk_skin_tone"].isin(values)]
+        if subset.empty:
+            continue
+        records.append(
+            {
+                "group_type": "monk_skin_tone",
+                "group_value": label,
+                "monk_label": label,
+                **_summarise_subset(subset, modes),
+            }
+        )
+
+    return records
+
+
 def _build_combo_rows(
     df: pd.DataFrame,
     modes: Iterable[Tuple[str, str]],
@@ -337,7 +478,7 @@ def _build_combo_rows(
 
 def main() -> None:
     args = parse_args()
-    merged = _load_inputs(args.triage_detail, args.manifest)
+    merged = _load_inputs(args.triage_detail, args.manifest, args.skin_tone_overrides)
     modes = _resolve_modes(args.modes, merged)
 
     output_dir = args.output_dir
@@ -346,18 +487,30 @@ def main() -> None:
     diagnosis_rows = _build_diagnosis_rows(merged, modes)
     defect_rows = _build_defect_rows(merged, modes)
     combo_rows = _build_combo_rows(merged, modes)
+    skin_tone_rows = _build_skin_tone_rows(merged, modes)
+    monk_rows = _build_monk_rows(merged, modes)
 
     diagnosis_path = output_dir / "triage_breakdown_by_diagnosis.csv"
     defect_path = output_dir / "triage_breakdown_by_defect.csv"
     combo_path = output_dir / "triage_breakdown_by_fail_combo.csv"
+    skin_tone_path = output_dir / "triage_breakdown_by_skin_tone.csv"
+    monk_path = output_dir / "triage_breakdown_by_monk_skin_tone.csv"
 
     pd.DataFrame(diagnosis_rows).to_csv(diagnosis_path, index=False)
     pd.DataFrame(defect_rows).to_csv(defect_path, index=False)
     pd.DataFrame(combo_rows).to_csv(combo_path, index=False)
+    if skin_tone_rows:
+        pd.DataFrame(skin_tone_rows).to_csv(skin_tone_path, index=False)
+    if monk_rows:
+        pd.DataFrame(monk_rows).to_csv(monk_path, index=False)
 
     print(f"Wrote diagnosis breakdown to {diagnosis_path}")
     print(f"Wrote defect breakdown to {defect_path}")
     print(f"Wrote fail-combo breakdown to {combo_path}")
+    if skin_tone_rows:
+        print(f"Wrote skin-tone breakdown to {skin_tone_path}")
+    if monk_rows:
+        print(f"Wrote Monk skin-tone breakdown to {monk_path}")
 
 
 if __name__ == "__main__":

@@ -23,21 +23,24 @@
 ## Data Fields
 - `image_path`: Relative path within `data/quality/images`.
 - `diagnosis`: Original lesion diagnosis from source metadata.
-- `skin_tone_score`: Proxy brightness estimate (0-1).
-- `skin_tone_bin`: Discrete bin index derived from `skin_tone_score`.
+- `ita_score`: Individual Typology Angle (median of four peripheral patches; degrees).
+- `fitzpatrick_type`: ITA-mapped Fitzpatrick bin (0=Type I ... 5=Type VI).
+- `monk_skin_tone`: ITA-mapped Monk Skin Tone index (1-10).
+- `skin_tone_bin`: Legacy alias for `fitzpatrick_type` retained for compatibility.
 - `capture_channel`: `clinic` or `patient_generated` (heuristic).
 - `meta_*`: Hyperparameters used to synthesize each defect.
 - Quality labels: Binary indicators matching taxonomy above.
 
 ## Generation Process
 1. Sample balanced subset from each source dataset (`base_images_per_source`).
-2. Save pristine copy (pass) with all quality labels = 0.
-3. Apply up to `max_augmentations_per_image` random defects using `snapcheck.augmentations.QualityAugmentor`.
-4. Store augmented image and JSONL/CSV manifests with label metadata.
-5. Split into train/val/test using stratified sampling on `overall_fail`.
+2. Compute ITA from four corner patches and convert to Fitzpatrick/Monk bins.
+3. Save pristine copy (pass) with all quality labels = 0.
+4. Apply up to `max_augmentations_per_image` random defects using `snapcheck.augmentations.QualityAugmentor`.
+5. Store augmented image and JSONL/CSV manifests with label metadata + skin tone fields.
+6. Split into train/val/test using stratified sampling on `overall_fail`.
 
 ## Ethical / Fairness Considerations
-- Skin tone bins rely on crude brightness proxy; fine-tuning with expert Fitzpatrick labels recommended.
+- ITA-derived skin tone remains a proxy; incorporate expert labels (e.g., MSKCC) when available.
 - Obstruction patches do not guarantee realism of hair/jewelry occlusion.
 - Synthetic defects should be calibrated with clinician feedback before deployment.
 

@@ -5,13 +5,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import numpy as np
 import pandas as pd
 from PIL import Image
 from sklearn.model_selection import train_test_split
 
 from .augmentations import QualityAugmentor
 from .paths import QUALITY_DATA_DIR
+from .skin_tone import compute_ita, ita_to_fitzpatrick, ita_to_monk
 from .utils import configure_logging, save_jsonl, set_seed
 
 LOGGER = configure_logging("snapcheck.data")
@@ -25,8 +25,9 @@ class ManifestRecord:
     diagnosis: str
     split: str
     capture_channel: str
-    skin_tone_score: Optional[float]
-    skin_tone_bin: Optional[int]
+    ita_score: Optional[float]
+    fitzpatrick_type: Optional[int]
+    monk_skin_tone: Optional[int]
     quality_labels: Dict[str, int]
     augmentation_metadata: Dict[str, float]
 
@@ -38,32 +39,15 @@ class ManifestRecord:
             "diagnosis": self.diagnosis,
             "split": self.split,
             "capture_channel": self.capture_channel,
-            "skin_tone_score": self.skin_tone_score,
-            "skin_tone_bin": self.skin_tone_bin,
+            "ita_score": self.ita_score,
+            "fitzpatrick_type": self.fitzpatrick_type,
+            "monk_skin_tone": self.monk_skin_tone,
+            "skin_tone_bin": self.fitzpatrick_type,
         }
         base.update(self.quality_labels)
         for key, value in self.augmentation_metadata.items():
             base[f"meta_{key}"] = value
         return base
-
-
-def _estimate_skin_tone(image: Image.Image) -> Optional[float]:
-    """Proxy skin tone score using average brightness in HSV space."""
-    hsv = image.convert("HSV")
-    _, _, v = hsv.split()
-    v_arr = np.asarray(v, dtype=np.float32) / 255.0
-    return float(v_arr.mean())
-
-
-def _bin_skin_tone(score: Optional[float], bins: List[float]) -> Optional[int]:
-    if score is None:
-        return None
-    for idx in range(len(bins) - 1):
-        if bins[idx] <= score < bins[idx + 1]:
-            return idx
-    return len(bins) - 2 if len(bins) >= 2 else None
-
-
 def _assign_capture_channel(source: str) -> str:
     if source.lower() in {"ham10000", "derm7pt"}:
         return "clinic"
@@ -130,7 +114,6 @@ def build_quality_dataset(config: Dict[str, any]) -> Dict[str, Path]:
     all_records: List[ManifestRecord] = []
 
     augmentor = QualityAugmentor(config=config, seed=config.get("seed", 1337))
-    bins = config.get("skin_tone_bins", [0.0, 1.0])
 
     for source in sources:
         dataset_name = source.get("name", "unknown")
@@ -163,8 +146,10 @@ def build_quality_dataset(config: Dict[str, any]) -> Dict[str, Path]:
                 LOGGER.warning("Skipping %s due to error: %s", path, exc)
                 continue
 
-            skin_score = _estimate_skin_tone(image) if config.get("skin_patch_strategy") else None
-            skin_bin = _bin_skin_tone(skin_score, bins)
+            ita_result = compute_ita(image, strategy=config.get("skin_patch_strategy", "patches"))
+            ita_score = ita_result.median
+            fitzpatrick_type = ita_to_fitzpatrick(ita_score) if ita_score == ita_score else -1
+            monk_tone = ita_to_monk(ita_score) if ita_score == ita_score else -1
             capture_channel = _assign_capture_channel(dataset_name)
             diagnosis = _lookup_diagnosis(df_meta, source, path) if not df_meta.empty else "unknown"
 
@@ -178,8 +163,9 @@ def build_quality_dataset(config: Dict[str, any]) -> Dict[str, Path]:
                 diagnosis=diagnosis,
                 split="unassigned",
                 capture_channel=capture_channel,
-                skin_tone_score=skin_score,
-                skin_tone_bin=skin_bin,
+                ita_score=float(ita_score) if ita_score == ita_score else None,
+                fitzpatrick_type=int(fitzpatrick_type) if fitzpatrick_type >= 0 else None,
+                monk_skin_tone=int(monk_tone) if monk_tone >= 0 else None,
                 quality_labels=DEFAULT_LABELS.copy(),
                 augmentation_metadata={},
             )
@@ -196,8 +182,9 @@ def build_quality_dataset(config: Dict[str, any]) -> Dict[str, Path]:
                 diagnosis=diagnosis,
                 split="unassigned",
                 capture_channel=capture_channel,
-                skin_tone_score=skin_score,
-                skin_tone_bin=skin_bin,
+                ita_score=float(ita_score) if ita_score == ita_score else None,
+                fitzpatrick_type=int(fitzpatrick_type) if fitzpatrick_type >= 0 else None,
+                monk_skin_tone=int(monk_tone) if monk_tone >= 0 else None,
                 quality_labels=aug_result.labels,
                 augmentation_metadata=aug_result.metadata,
             )

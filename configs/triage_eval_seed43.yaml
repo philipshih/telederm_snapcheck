@@ -4,6 +4,8 @@ triage_labels:
   urgent:
   - melanoma
   - melanoma_in_situ
+  - melanoma in situ
+  - mel
   - bcc
   - basal cell carcinoma
   - scc

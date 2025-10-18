@@ -4,6 +4,8 @@ triage_labels:
   urgent:
   - melanoma
   - melanoma_in_situ
+  - melanoma in situ
+  - mel
   - bcc
   - basal cell carcinoma
   - scc
@@ -26,19 +28,22 @@ triage_labels:
   - normal_skin
   - normal skin
 input_manifests:
-  baseline: data/quality/publication_manifest.csv
+  baseline: data/quality/manifest.csv
 quality_model:
   checkpoint: models/snapcheck_quality.pt
   threshold_strategy: per_label
   thresholds_path: reports/diqa/thresholds.json
 vlm_backends:
-- name: gpt5_nano
-  type: openai
-  model: gpt-5-nano-2025-08-07
-  api_key_env: OPENAI_API_KEY
-  max_tokens: 800
-  reasoning:
-    effort: low
+- name: qwen2_vl_2b
+  type: huggingface
+  model_id: models/qwen2_vl_2b
+  device: cuda_if_available
+  max_new_tokens: 80
+  temperature: 0.0
+  torch_dtype: float16
+  device_map: auto
+  model_kwargs:
+    low_cpu_mem_usage: true
   prompt_template: configs/prompts/diagnosis_singleline.txt
 simulation:
   cache_responses: true

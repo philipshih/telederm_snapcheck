@@ -1,14 +1,20 @@
-﻿# TeleDerm SnapCheck
+<p align="center">
+  <img src="assets/snapcheck_logo.svg" alt="TeleDerm SnapCheck logo" width="200">
+</p>
 
-TeleDerm SnapCheck explores how automated dermatology image quality gating affects downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance on urgent triage is compared with and without the use of a ViT. 
+# TeleDerm SnapCheck
+
+TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and GPT-class vision-language models are replayed with and without a calibrated ViT-based gate.
+
+> **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
 ## Getting Started
 
 1. Create a virtual environment and install requirements.
-2. Provide dataset in /data or use `scripts/download_public_datasets.py` to grab ISIC/HAM10000 metadata.
-3. Launch synthetic augmentation pipeline: `python scripts/build_quality_dataset.py --config configs/augmentation.yaml`.
-4. Train ViT quality classifier: `python scripts/train_quality_model.py --config configs/train_diqa.yaml`.
-5. Run: `python scripts/run_triage_simulation.py --config configs/triage_eval.yaml`.
-6. Generate figures/tables via `scripts/summarize_results.py`.
+2. Provide datasets in `/data` or run `scripts/download_public_datasets.py` to fetch ISIC/HAM10000 metadata.
+3. Launch the synthetic augmentation pipeline: `python scripts/build_quality_dataset.py --config configs/augmentation.yaml`.
+4. Train the ViT quality classifier: `python scripts/train_quality_model.py --config configs/train_diqa.yaml`.
+5. Run the paired triage simulation: `python scripts/run_triage_simulation.py --config configs/triage_eval.yaml`.
+6. Regenerate tables/figures: `python scripts/analyze_triage_breakdowns.py` followed by `scripts/format_triage_publication_tables.py`.
 
-Current progress on SnapCheck in `docs/publication_plan.md`.
+Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.

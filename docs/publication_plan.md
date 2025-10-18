@@ -1,63 +1,60 @@
-# TeleDerm SnapCheck Publication Checklist
+Ôªø# TeleDerm SnapCheck Publication Checklist
 
 ## Working Title
-"TeleDerm SnapCheck: Rapid Image-Quality Gating Improves Vision-Language Triage Safety in Teledermatology"
+"TeleDerm SnapCheck: Calibrated Image-Quality Gating Improves Vision-Language Triage Safety"
 
 ## Target Venues
 - *JMIR Dermatology* (Rapid Communication)
 - *npj Digital Medicine* (Brief Communication)
-- *Telemedicine and e-Health* (Letters)
+- *Telemedicine and e-Health* (Research Article)
 
 ## Core Contributions
-1. **Synthetic DIQA Dataset** ñ Programmatic generation of labeled dermatology image-quality defects built from public datasets.
-2. **Compact Quality Classifier** ñ ViT-S model trained with auto-labels, exported to ONNX/TFLite for point-of-care deployment.
-3. **Triage Simulation Harness** ñ Head-to-head comparison of baseline vs quality-gated VLM triage decisions across fairness slices.
-4. **Fairness & Efficiency Metrics** ñ Skin tone-stratified AUROC/recall, latency, and token usage deltas.
-5. **Open Toolkit** ñ Reproducible scripts, configs, and Streamlit demo.
+1. **Synthetic DIQA Dataset** ‚Äì Programmatic generation of dermatology-specific image-quality defects paired with pristine references.
+2. **Compact Quality Classifier** ‚Äì ViT-S/16 model achieving macro AUROC 0.968 / macro AP 0.890 with fairness slices across Fitzpatrick-like bins.
+3. **Calibrated Quality Gate** ‚Äì Offline threshold tuning toolkit (`scripts/offline_gate_analysis.py`) delivering urgent recall 73.2% -> 75.9% with a 18.9% retake rate on 4,800 triage images.
+4. **Triage Simulation & Fairness Analysis** ‚Äì Head-to-head comparison of baseline vs gated Qwen2-VL-2B triage including defect, diagnosis, and skin-tone breakdowns.
+5. **Open Toolkit** ‚Äì Reproducible scripts, cached prompts, and manuscript-ready tables/figures.
 
 ## Figures & Tables
-- Fig 1: Workflow schematic.
-- Fig 2: ROC curves per defect + calibration plot.
-- Fig 3: Triage accuracy vs urgent miss rate (bar + line) baseline vs gated.
-- Fig 4: Fairness violin plots (AUROC by Fitzpatrick bin).
-- Table 1: Dataset composition and augmentation statistics.
-- Table 2: Triage safety metrics across models.
-- Table 3: Latency and token savings summary.
+- **Figure 1 (ready):** Workflow schematic (`reports/figures/telederm_snapcheck_workflow_v3.png`).
+- **Figure 2 (planned):** Defect impact on accuracy/retake rate (bar chart).
+- **Figure 3 (planned):** Urgent recall vs retake trade-off across threshold sweeps.
+- **Table 1 (ready):** Triage performance summary (`reports/triage/triage_summary.csv`).
+- **Table 2 (ready):** Fitzpatrick & diagnosis breakdowns (`reports/triage/breakdowns/triage_publication_tables.md`).
+- **Table 3 (planned):** DIQA model metrics + fairness slices.
 
-## Timeline (aggressive)
-| Week | Milestone |
-|------|-----------|
-| 0 | Data download, augmentation sanity checks |
-| 1 | Train DIQA model, run ablations |
-| 2 | Triage simulations, fairness analysis |
-| 3 | Draft manuscript + figures |
-| 4 | Internal review, submission |
+## Timeline (updated)
+| Week | Milestone | Status |
+|------|-----------|--------|
+| 0 | Data download, augmentation sanity checks | ‚úÖ |
+| 1 | Train DIQA model, evaluate fairness | ‚úÖ |
+| 2 | Run triage simulations & threshold calibration | ‚úÖ |
+| 3 | Draft manuscript, integrate calibrated metrics | üîÑ (in progress) |
+| 4 | External review, polish figures/tables, submission | ‚è≥ |
 
 ## Writing Outline
-1. **Introduction** ñ Telederm access gap, image quality bottlenecks, lack of automated gating evidence.
-2. **Methods** ñ Dataset curation, augmentation strategy, quality labels, model training, VLM triage setup, metrics, fairness algorithms.
-3. **Results** ñ Quality classifier performance, fairness slices, triage baseline vs gated, latency/token analysis.
-4. **Discussion** ñ Clinical implications, limitations (synthetic labels, dataset bias), future work (prospective validation, integration with patient apps).
-5. **Conclusion** ñ SnapCheck viability.
+1. **Introduction** ‚Äì Telederm access gap, image-quality failure modes, motivation for automated gating.
+2. **Methods** ‚Äì Dataset curation, augmentation, DIQA training, offline calibration workflow, VLM triage setup, metrics/fairness definitions.
+3. **Results** ‚Äì DIQA performance, threshold calibration, triage outcomes (overall + slices), defect impact analysis.
+4. **Discussion** ‚Äì Clinical implications, retake burden, limitations (synthetic defects, paired pass assumption), future directions.
+5. **Conclusion** ‚Äì SnapCheck viability and path toward clinical deployment.
 
 ## Reproducibility Checklist
-- [ ] Seed logging (configurable).
-- [ ] Deterministic dataloaders or documentation of nondeterminism.
-- [ ] Model/export checksums.
-- [ ] Publish metadata manifest with augmentation parameters.
-- [ ] Provide inference notebook replicating key plots.
-- [ ] Document API usage requirements (keys, costs, caching).
+- [x] Config-driven experiments (`configs/*.yaml`).
+- [x] Seed logging and cached prompts (see `reports/triage/cache/`).
+- [x] Threshold calibration script with deterministic replay.
+- [ ] Model/export checksums (pending addition to `models/` README).
+- [ ] Publish augmentation manifest metadata bundle.
+- [ ] Validation notebook reproducing key plots.
 
 ## IRB & Ethics Notes
-- Uses de-identified public datasets only.
-- Provide citation + licensing compliance in appendix.
-- Include statement on synthetic augmentations and limitations.
+- Uses de-identified public datasets only; cite HAM10000 and Derm7pt licenses.
+- Synthetic defects supplement but do not replace expert review; discuss in limitations.
+- Highlight fairness monitoring across skin-tone bins.
 
 ## Next Actions
-- [ ] Confirm dataset availability + licensing.
-- [ ] Implement augmentation pipeline (scripts/build_quality_dataset.py).
-- [ ] Implement training/eval (scripts/train_quality_model.py, scripts/evaluate_quality_model.py).
-- [ ] Implement triage simulation (scripts/run_triage_simulation.py).
-- [ ] Add Streamlit demo (scripts/app_streamlit.py).
-- [ ] Draft manuscript using `docs/manuscript_template.md` (to be created after initial results).
-
+- [ ] Add checksums + version info for quality model and triage outputs.
+- [ ] Produce planned figures (defect impact, threshold trade-off).
+- [ ] Draft remaining manuscript sections using updated metrics.
+- [ ] Conduct qualitative review of retake prompts with clinical advisors.
+- [ ] Prepare supplementary materials (augmentation metadata, config archive).

@@ -84,7 +84,7 @@ seed: 1337
 
 # Fitzpatrick estimation
 skin_tone_estimator: huggingface:facebook/mask2former-swin-large-ade-semantic
-skin_patch_strategy: median_foreground_patch
+skin_patch_strategy: patches
 skin_tone_bins: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
 # Output

@@ -1,53 +1,53 @@
 {
-  "strategy": "severity_quantile_0.982",
+  "strategy": "offline_val_scale_1p05_2025-10-18",
   "thresholds": {
     "blur": {
-      "threshold": 0.99946,
-      "notes": "Calibrated to 98.2nd severity quantile to target ~20% retake rate."
+      "threshold": 0.966,
+      "notes": "Offline calibration on validation split (Oct 2025); scaled legacy blur threshold by 1.05."
     },
     "motion_blur": {
-      "threshold": 0.99942,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 0.8925,
+      "notes": "Offline calibration on validation split (Oct 2025); retains sensitivity to motion streaks."
     },
     "low_brightness": {
-      "threshold": 0.99317,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Raised to full scale to prevent unnecessary retakes from mild exposure drift."
     },
     "high_brightness": {
-      "threshold": 0.99333,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Raised to full scale to prevent unnecessary retakes from mild exposure drift."
     },
     "low_contrast": {
-      "threshold": 0.98931,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Raised to full scale to prevent unnecessary retakes from subtle contrast changes."
     },
     "high_contrast": {
-      "threshold": 0.89304,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Raised to full scale to prevent unnecessary retakes from subtle contrast changes."
     },
     "noise": {
-      "threshold": 0.99882,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Maintained at full scale pending real-world noise validation."
     },
     "shadow": {
-      "threshold": 0.99877,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Maintained at full scale pending shadow validation."
     },
     "obstruction": {
-      "threshold": 0.99890,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 0.8925,
+      "notes": "Offline calibration on validation split (Oct 2025); tuned for occlusion recall."
     },
     "framing": {
-      "threshold": 0.99698,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Raised to full scale; framing issues effectively captured via other triggers."
     },
     "low_resolution": {
-      "threshold": 0.99371,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 0.966,
+      "notes": "Offline calibration on validation split (Oct 2025); scaled to sustain urgent recall lift."
     },
     "overall_fail": {
-      "threshold": 0.99860,
-      "notes": "Calibrated to 98.2nd severity quantile."
+      "threshold": 1.0,
+      "notes": "Global fail trigger aligned with per-label calibration to limit redundant retakes."
     }
   }
 }

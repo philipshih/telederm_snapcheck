@@ -2,6 +2,7 @@
 
 import json
 import hashlib
+import math
 import re
 import time
 from datetime import datetime
@@ -14,6 +15,7 @@ import pandas as pd
 import torch
 from PIL import Image
 from torchvision import transforms
+from statistics import NormalDist
 
 from .paths import QUALITY_DATA_DIR, REPORT_DIR
 from .quality_model import QualityModel, TARGET_LABELS
@@ -173,6 +175,19 @@ def map_prediction_to_triage(prediction: str, triage_map: Dict[str, List[str]]) 
     return map_diagnosis_to_triage(candidate, triage_map)
 
 
+def _wilson_interval(successes: int, n: int, confidence: float = 0.95) -> tuple[float, float]:
+    if n <= 0:
+        return float("nan"), float("nan")
+    confidence = max(min(confidence, 0.999), 0.001)
+    z = NormalDist().inv_cdf(0.5 + confidence / 2.0)
+    phat = successes / n
+    denom = 1 + (z ** 2) / n
+    center = (phat + (z ** 2) / (2 * n)) / denom
+    margin = (z * math.sqrt((phat * (1 - phat) + (z ** 2) / (4 * n)) / n)) / denom
+    lower = max(0.0, center - margin)
+    upper = min(1.0, center + margin)
+    return lower, upper
+
 
 def compute_triage_metrics(results: List[TriageResult], triage_attr: str = "model_triage") -> Dict[str, float]:
     metrics: Dict[str, float] = {}
@@ -196,10 +211,10 @@ def compute_triage_metrics(results: List[TriageResult], triage_attr: str = "mode
             is_retake = True
         elif candidate and candidate not in {"unknown", "n/a"}:
             label = candidate
-            is_retake = quality_fail
+            is_retake = bool(quality_fail) if triage_attr != "model_triage" else False
         else:
             label = "unknown"
-            is_retake = quality_fail
+            is_retake = bool(quality_fail) if triage_attr != "model_triage" else False
 
         normalized_predictions.append(label)
         retake_flags.append(is_retake)
@@ -214,32 +229,59 @@ def compute_triage_metrics(results: List[TriageResult], triage_attr: str = "mode
     ]
     if valid_indices:
         correct = sum(1 for idx in valid_indices if y_true[idx] == normalized_predictions[idx])
-        metrics["triage_accuracy"] = correct / len(valid_indices)
+        triaged_n = len(valid_indices)
+        metrics["triage_accuracy"] = correct / triaged_n
+        acc_ci_low, acc_ci_high = _wilson_interval(correct, triaged_n)
+    else:
+        triaged_n = 0
+        metrics["triage_accuracy"] = float("nan")
+        acc_ci_low, acc_ci_high = float("nan"), float("nan")
+    metrics["triage_accuracy_ci_low"] = acc_ci_low
+    metrics["triage_accuracy_ci_high"] = acc_ci_high
     metrics["triaged_cases"] = len(valid_indices)
     metrics["triaged_case_fraction"] = len(valid_indices) / max(1, total_known_truth)
 
-    urgent_indices = [idx for idx in valid_indices if y_true[idx] == "urgent"]
-    if urgent_indices:
+    urgent_indices = [idx for idx, truth in enumerate(y_true) if truth == "urgent"]
+    urgent_total = len(urgent_indices)
+    if urgent_total:
         tp = sum(1 for idx in urgent_indices if normalized_predictions[idx] == "urgent")
-        fn = sum(1 for idx in urgent_indices if normalized_predictions[idx] != "urgent")
-        denom = tp + fn
-        if denom:
-            metrics["urgent_recall"] = tp / denom
-            metrics["urgency_miss_rate"] = fn / denom
+        urgent_deferrals = sum(retake_flags[idx] for idx in urgent_indices)
+        urgent_misses = max(urgent_total - tp - urgent_deferrals, 0)
 
-    total_urgent = sum(1 for truth in y_true if truth == "urgent")
-    if total_urgent:
-        urgent_deferrals = sum(
-            1 for idx, truth in enumerate(y_true) if truth == "urgent" and retake_flags[idx]
-        )
-        metrics["urgent_deferral_rate"] = urgent_deferrals / total_urgent
+        metrics["urgent_recall"] = tp / urgent_total
+        metrics["urgency_miss_rate"] = urgent_misses / urgent_total
+        metrics["urgent_deferral_rate"] = urgent_deferrals / urgent_total
+
+        ur_ci_low, ur_ci_high = _wilson_interval(tp, urgent_total)
+        metrics["urgent_recall_ci_low"] = ur_ci_low
+        metrics["urgent_recall_ci_high"] = ur_ci_high
+
+        ud_ci_low, ud_ci_high = _wilson_interval(urgent_deferrals, urgent_total)
+        metrics["urgent_deferral_rate_ci_low"] = ud_ci_low
+        metrics["urgent_deferral_rate_ci_high"] = ud_ci_high
+    else:
+        metrics["urgent_recall"] = float("nan")
+        metrics["urgency_miss_rate"] = float("nan")
+        metrics["urgent_deferral_rate"] = float("nan")
+        metrics["urgent_recall_ci_low"] = float("nan")
+        metrics["urgent_recall_ci_high"] = float("nan")
+        metrics["urgent_deferral_rate_ci_low"] = float("nan")
+        metrics["urgent_deferral_rate_ci_high"] = float("nan")
 
     reassurance_indices = [idx for idx in valid_indices if y_true[idx] == "reassurance"]
     if reassurance_indices:
         safe = sum(1 for idx in reassurance_indices if normalized_predictions[idx] == "reassurance")
         metrics["safe_reassurance_rate"] = safe / len(reassurance_indices)
 
-    metrics["retake_rate"] = sum(retake_flags) / max(1, total_cases)
+    retake_total = sum(retake_flags)
+    if total_cases:
+        metrics["retake_rate"] = retake_total / total_cases
+        rr_ci_low, rr_ci_high = _wilson_interval(retake_total, total_cases)
+    else:
+        metrics["retake_rate"] = float("nan")
+        rr_ci_low, rr_ci_high = float("nan"), float("nan")
+    metrics["retake_rate_ci_low"] = rr_ci_low
+    metrics["retake_rate_ci_high"] = rr_ci_high
     metrics["mean_latency"] = float(np.mean([r.latency for r in results])) if results else float("nan")
     token_usages = [r.token_usage for r in results if r.token_usage is not None]
     metrics["mean_token_usage"] = float(np.mean(token_usages)) if token_usages else float("nan")

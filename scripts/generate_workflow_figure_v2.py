@@ -79,53 +79,53 @@ def main():
     bottleneck_color = "#fee2e2"
 
     # --- Stage 1: Model Training ---
-    add_box(ax, 0.05, 0.65, 0.9, 0.2, "", facecolor=stage_color)  # Container
-    ax.text(0.5, 0.8, "1. Model Training: Build a Dermatology Image Quality Classifier",
+    add_box(ax, 0.05, 0.62, 0.9, 0.2, "", facecolor=stage_color)  # Container
+    ax.text(0.5, 0.79, "1. Train a Dermatology Image Quality Classifier",
             ha="center", va="center", fontsize=14, fontweight="bold", color="#102a43")
     add_box(
-        ax, 0.1, 0.68, 0.35, 0.1,
-        "Input: Public datasets (ISIC, HAM10000)\n+ Synthetic quality defects (blur, lighting)",
+        ax, 0.1, 0.65, 0.37, 0.11,
+        "Input: ISIC, HAM10000, Derm7pt\n+ synthetic degradations (blur, lighting, framing)",
         facecolor="white", loc="center", text_kwargs={"fontsize": 10}
     )
     add_box(
-        ax, 0.55, 0.68, 0.35, 0.1,
-        "Output: ViT-Small model (AUROC 0.968)\nDetects 5 types of image quality issues",
+        ax, 0.53, 0.65, 0.37, 0.11,
+        "Output: ViT-Small DIQA model (AUROC 0.968)\nScores 11 quality heads + overall failure",
         facecolor="white", loc="center", text_kwargs={"fontsize": 10}
     )
 
     # --- Stage 2: Triage Simulation ---
-    add_box(ax, 0.05, 0.35, 0.9, 0.2, "", facecolor=stage_color)  # Container
-    ax.text(0.5, 0.5, "2. Triage Simulation: Test the Quality Gate's Impact",
+    add_box(ax, 0.05, 0.33, 0.9, 0.2, "", facecolor=stage_color)  # Container
+    ax.text(0.5, 0.5, "2. Simulate GPT-5 Nano Triage With and Without SnapCheck",
             ha="center", va="center", fontsize=14, fontweight="bold", color="#102a43")
     add_box(
-        ax, 0.1, 0.38, 0.35, 0.1,
-        "Control Arm: VLM Triage only\n(Qwen2-VL-2B)",
+        ax, 0.1, 0.36, 0.37, 0.11,
+        "Baseline arm: GPT-5 Nano triage only\n(4,800 cases; urgent recall 73.2%)",
         facecolor="white", loc="center", text_kwargs={"fontsize": 10}
     )
     add_box(
-        ax, 0.55, 0.38, 0.35, 0.1,
-        "Test Arm: SnapCheck Quality Gate\n+ VLM Triage",
+        ax, 0.53, 0.36, 0.37, 0.11,
+        "Quality-gated arm: SnapCheck + GPT-5 Nano\n(Urgent recall 75.9%, retake rate 18.9%)",
         facecolor="white", loc="center", text_kwargs={"fontsize": 10}
     )
 
     # --- Stage 3: Results & Next Steps ---
-    add_box(ax, 0.05, 0.05, 0.9, 0.2, "", facecolor=stage_color)  # Container
-    ax.text(0.5, 0.2, "3. Key Finding & Next Step",
+    add_box(ax, 0.05, 0.04, 0.9, 0.2, "", facecolor=stage_color)  # Container
+    ax.text(0.5, 0.23, "3. Findings and Forward Plan",
             ha="center", va="center", fontsize=14, fontweight="bold", color="#102a43")
     add_box(
-        ax, 0.1, 0.08, 0.35, 0.1,
-        "Finding: Gate is too strict (50% retake rate),\nincreasing urgent miss rate from 0.35 to 0.69.",
-        facecolor=bottleneck_color, loc="center", text_kwargs={"fontsize": 10}
+        ax, 0.1, 0.07, 0.37, 0.11,
+        "Finding: Calibrated thresholds improve\nurgent recall (+2.7 pp) at 17.8% deferrals\nand 18.9% retakes; blur/motion blur drive lift.",
+        facecolor=bottleneck_color, loc="center", text_kwargs={"fontsize": 10, "linespacing": 1.3}
     )
     add_box(
-        ax, 0.55, 0.08, 0.35, 0.1,
-        "Next Step: Tune quality thresholds\nto balance safety and clinical throughput.",
-        facecolor=highlight_color, loc="center", text_kwargs={"fontsize": 10}
+        ax, 0.53, 0.07, 0.37, 0.11,
+        "Next steps: Validate with real uploads,\nrefine defect-specific policies,\nand deliver clinician-facing retake guidance.",
+        facecolor=highlight_color, loc="center", text_kwargs={"fontsize": 10, "linespacing": 1.3}
     )
 
     # Arrows connecting stages
-    add_arrow(ax, (0.5, 0.65), (0.5, 0.55))
-    add_arrow(ax, (0.5, 0.35), (0.5, 0.25))
+    add_arrow(ax, (0.5, 0.62), (0.5, 0.53))
+    add_arrow(ax, (0.5, 0.33), (0.5, 0.25))
 
     output_path = output_dir / "telederm_snapcheck_workflow_v3.png"
     fig.savefig(output_path, dpi=300, bbox_inches="tight")

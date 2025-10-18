@@ -4,6 +4,8 @@ triage_labels:
   urgent:
   - melanoma
   - melanoma_in_situ
+  - melanoma in situ
+  - mel
   - bcc
   - basal cell carcinoma
   - scc
@@ -30,19 +32,7 @@ input_manifests:
 quality_model:
   checkpoint: models/snapcheck_quality.pt
   threshold_strategy: per_label
-  thresholds:
-    blur: 0.259
-    motion_blur: 0.288
-    low_brightness: 0.098
-    high_brightness: 0.067
-    low_contrast: 0.027
-    high_contrast: 0.034
-    noise: 0.043
-    shadow: 0.168
-    obstruction: 0.772
-    framing: 0.049
-    low_resolution: 0.054
-    overall_fail: 0.5
+  thresholds_path: reports/diqa/thresholds.json
 vlm_backends:
 - name: openai_gpt5_nano
   type: openai
