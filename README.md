@@ -19,7 +19,7 @@ TeleDerm SnapCheck explores how automated dermatology image-quality gating impac
 
 Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 
-## Next Steps
+## In Progress
 
 - Validate SnapCheck on a fully external patient-generated cohort (e.g., SCIN/Path) to confirm safety gains outside HAM10000/Derm7pt synthetic pairs.
-- Package reproducibility artifacts (model checksums, augmentation manifests, notebooks) for journal submission.
+- Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
