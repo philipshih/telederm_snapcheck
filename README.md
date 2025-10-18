@@ -4,7 +4,7 @@
 
 # TeleDerm SnapCheck
 
-TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and GPT-class vision-language models are replayed with and without a calibrated ViT-based gate.
+TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance is assessed with and without a calibrated ViT-based gate.
 
 > **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
@@ -12,9 +12,9 @@ TeleDerm SnapCheck explores how automated dermatology image-quality gating impac
 
 1. Create a virtual environment and install requirements.
 2. Provide datasets in `/data` or run `scripts/download_public_datasets.py` to fetch ISIC/HAM10000 metadata.
-3. Launch the synthetic augmentation pipeline: `python scripts/build_quality_dataset.py --config configs/augmentation.yaml`.
-4. Train the ViT quality classifier: `python scripts/train_quality_model.py --config configs/train_diqa.yaml`.
-5. Run the paired triage simulation: `python scripts/run_triage_simulation.py --config configs/triage_eval.yaml`.
+3. Launch the synthetic image augmentation pipeline: `python scripts/build_quality_dataset.py --config configs/augmentation.yaml`.
+4. Train the ViT classifier: `python scripts/train_quality_model.py --config configs/train_diqa.yaml`.
+5. Run the triage simulation: `python scripts/run_triage_simulation.py --config configs/triage_eval.yaml`.
 6. Regenerate tables/figures: `python scripts/analyze_triage_breakdowns.py` followed by `scripts/format_triage_publication_tables.py`.
 
 Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
