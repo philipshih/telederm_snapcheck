@@ -62,7 +62,10 @@ For descriptive robustness we computed nonparametric 95% confidence intervals vi
 
 Table 1. Aggregate triage metrics for 1,344 evaluation exposures (672 lesion pairs; 354 urgent exposures across 177 urgent lesions).
 
-Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shifted from 40.4% (95% CI 37.8–43.1) in the ungated arm to 40.1% (95% CI 37.5–42.7) with SnapCheck. Urgent recall increased from 73.7% (95% CI 68.9–78.0) to 76.6% (95% CI 71.9–80.7), while the urgent miss rate fell from 26.3% to 8.2% (−69% relative). The gate recommended retakes for 14.5% of encounters (95% CI 12.7–16.5), deferred 15.3% of urgent exposures for retake follow-up (95% CI 11.9–19.4), and flagged 195 of 672 degraded images (29.0% coverage).
+Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shifted from 40.4% (95% CI 37.8–43.1) in the ungated arm to 40.1% (95% CI 37.5–42.7) with SnapCheck. Urgent recall increased from 73.7% (95% CI 68.9–78.0) to 76.6% (95% CI 71.9–80.7), while the urgent miss rate fell from 26.3% to 8.2% (−69% relative). The gate recommended retakes for 14.5% of encounters (95% CI 12.7–16.5), deferred 15.3% of urgent exposures for retake follow-up (95% CI 11.9–19.4), and flagged 195 of 672 degraded images (29.0% coverage). Figure 2 visualises the trade-off introduced by SnapCheck.
+
+![Figure 2. SnapCheck halves urgent misses while introducing a managed retake/deferral queue.](reports/figures/figure2_overall_gains.png)
+*Figure 2. Comparison of baseline GPT-5 Nano triage versus SnapCheck-gated triage on the 1,344-exposure paired test cohort. Bars show the percentage of urgent misses, urgent recall, urgent deferrals, and retake recommendations.*
 
 ### Defect-Specific Impact
 
@@ -83,7 +86,10 @@ Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shi
 
 Table 2. Performance shifts when synthetic defects are present. Metrics are limited by the small number of urgent cases within each defect cohort.
 
-Blur and low-light failures benefit from gate intervention (recall +4.5 and +11.1 percentage points respectively) because the pass image restores lesion detail before VLM review. Motion blur, by contrast, shows a modest recall drop because the gate routed 80% of those encounters to retake; the clean pass images improved safety, but most cases fall outside the triage denominator until a replacement image arrives. These observations reinforce the need for capture coaching alongside automated retake prompts.
+![Figure 3. Defect-driven urgent miss and deferral rates before and after quality gating.](reports/figures/figure3_defect_impact.png)
+*Figure 3. Top eight synthetic defects ranked by urgent miss reduction. Left panel shows miss rates; right panel shows urgent deferral rates for the same defects.*
+
+Blur and low-light failures benefit from gate intervention (recall +4.5 and +11.1 percentage points respectively) because the pass image restores lesion detail before VLM review. Figure 3 also highlights how motion-blur cases show a modest recall drop because the gate routed 80% of those encounters to retake; the clean pass images improved safety, but most cases fall outside the triage denominator until a replacement image arrives. These observations reinforce the need for capture coaching alongside automated retake prompts.
 
 ### Fitzpatrick Skin Tone Performance
 
@@ -120,9 +126,12 @@ Urgent recall gains concentrate in the darker cohorts: Type VI improves by +5.0 
 | MST 9 | 20 | 6 | 30.0% | 35.0% | 66.7% | 66.7% | 0.0% | 33.3% | 0.0% | 15.0% |
 | MST 10 | 280 | 74 | 39.6% | 38.2% | 78.4% | 85.1% | 0.0% | 20.3% | 0.0% | 18.9% |
 
+![Figure 4. SnapCheck reduces urgent misses across Monk Skin Tone groupings.](reports/figures/figure4_skin_tone.png)
+*Figure 4. Urgent miss rates for grouped Monk Skin Tone bins (lighter MST 1–3, medium MST 4–7, darker MST 8–10) before and after SnapCheck gating.*
+
 Table 4. Calibrated SnapCheck performance across Monk Skin Tone bins (1=lighter, 10=darker; held-out test set).
 
-Monk groupings mirror the Fitzpatrick trends: MST 8-10 gains +5.4 urgent-recall points (70.7%→76.1%) with an 18.5% retake rate, while lighter MST 1-3 tones remain within 3.3 points of baseline recall (76.3%→79.6%). Small strata (e.g., MST 3, MST 5-7) show noisier retake estimates, underscoring the need for clinician overrides in future work.
+Monk groupings mirror the Fitzpatrick trends: MST 8-10 gains +5.4 urgent-recall points (70.7%→76.1%) with an 18.5% retake rate, while lighter MST 1-3 tones remain within 3.3 points of baseline recall (76.3%→79.6%). Figure 4 shows that urgent miss reductions persist across all three aggregated tone groupings. Small strata (e.g., MST 3, MST 5-7) show noisier retake estimates, underscoring the need for clinician overrides in future work.
 
 ## Discussion
 Calibrated SnapCheck gates provide a concrete urgent-safety improvement for teledermatology triage: urgent misses fall from 26.3% to 8.2% (a 69% relative reduction) while urgent recall edges up 2.9 percentage points (73.7%→76.6%). The gate introduces a 14.5% retake burden (195 of 1,344 encounters) and defers 15.3% of urgent exposures (54 lesions) for manual follow-up, covering 29% of degraded inputs without touching the VLM weights. These trade-offs align with clinical reports that 15-30% of asynchronous submissions are initially unreadable. Notably, Type VI Fitzpatrick lesions gained +6.3 urgent-recall points (77.5%→83.8%) and Monk Skin Tone 8-10 gained +5.4 points (70.7%→76.1%) with retake rates under 19%, indicating that the gate can raise sensitivity without widening observed skin-tone disparities.
