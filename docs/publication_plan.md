@@ -55,6 +55,7 @@
 ## Next Actions
 - [ ] Add checksums + version info for quality model and triage outputs.
 - [ ] Produce planned figures (defect impact, threshold trade-off).
-- [ ] Draft remaining manuscript sections using updated metrics.
+- [ ] Circulate manuscript for internal/external review using updated metrics.
+- [ ] Run external validation on SCIN/Path (patient-generated cohort) and report results.
 - [ ] Conduct qualitative review of retake prompts with clinical advisors.
 - [ ] Prepare supplementary materials (augmentation metadata, config archive).

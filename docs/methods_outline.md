@@ -18,12 +18,12 @@
 
 ## Threshold Calibration
 - Offline replay of cached quality scores + VLM predictions via `scripts/offline_gate_analysis.py` on the held-out validation split.
-- Sweep global and per-defect thresholds to balance urgent recall vs retake burden (target ~20% retakes, urgent recall +2-3 pp).
+- Sweep global and per-defect thresholds to maximize urgent miss reduction while keeping retakes ≲15%.
 - Lock thresholds before scoring the untouched test split.
 - Output artifacts: `reports/triage/offline_gate_summary.csv`, calibrated `reports/diqa/thresholds.json`, updated triage detail (`reports/triage/triage_detail_calibrated.csv`).
 
 ## Triage Simulation
-- Baseline: Direct Qwen2-VL-2B diagnosis mapped to triage labels via `configs/triage_eval.yaml`.
+- Baseline: GPT-5 Nano diagnosis mapped to triage labels via `configs/triage_eval.yaml`.
 - Quality-gated: Apply calibrated thresholds; failures swap in paired pass images, successes reuse baseline prediction.
 - Metrics: Triage accuracy, urgent recall, urgency miss rate, urgent deferral rate, retake rate, mean latency, mean token usage.
 - Fairness: Stratify metrics by skin tone bin, diagnosis, and defect presence.
@@ -47,4 +47,5 @@
 - Synthetic quality labels approximate but do not replace expert annotations.
 - ITA-derived skin tone remains a proxy; comparisons to MSKCC/clinician labels are planned.
 - Retake logic assumes availability of paired pass images; real patient retakes may differ.
-- Current evaluation uses a single VLM (Qwen2-VL-2B); future work should benchmark alternatives.
+- Current evaluation uses a single VLM (GPT-5 Nano); future work should benchmark alternatives.
+- SnapCheck has not yet been benchmarked on fully external patient-generated corpora (e.g., SCIN/Path); that validation is an immediate priority.

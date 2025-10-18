@@ -18,3 +18,8 @@ TeleDerm SnapCheck explores how automated dermatology image-quality gating impac
 6. Regenerate tables/figures: `python scripts/analyze_triage_breakdowns.py` followed by `scripts/format_triage_publication_tables.py`.
 
 Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
+
+## Next Steps
+
+- Validate SnapCheck on a fully external patient-generated cohort (e.g., SCIN/Path) to confirm safety gains outside HAM10000/Derm7pt synthetic pairs.
+- Package reproducibility artifacts (model checksums, augmentation manifests, notebooks) for journal submission.
