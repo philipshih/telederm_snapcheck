@@ -1,0 +1,53 @@
+{
+  "strategy": "severity_quantile_0.982",
+  "thresholds": {
+    "blur": {
+      "threshold": 0.99946,
+      "notes": "Calibrated to 98.2nd severity quantile to target ~20% retake rate."
+    },
+    "motion_blur": {
+      "threshold": 0.99942,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "low_brightness": {
+      "threshold": 0.99317,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "high_brightness": {
+      "threshold": 0.99333,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "low_contrast": {
+      "threshold": 0.98931,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "high_contrast": {
+      "threshold": 0.89304,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "noise": {
+      "threshold": 0.99882,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "shadow": {
+      "threshold": 0.99877,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "obstruction": {
+      "threshold": 0.99890,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "framing": {
+      "threshold": 0.99698,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "low_resolution": {
+      "threshold": 0.99371,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    },
+    "overall_fail": {
+      "threshold": 0.99860,
+      "notes": "Calibrated to 98.2nd severity quantile."
+    }
+  }
+}

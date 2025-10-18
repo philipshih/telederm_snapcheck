@@ -1,0 +1,10 @@
+metric,group,group_value,value
+auroc,skin_tone_bin,1,
+auroc,skin_tone_bin,2,0.957437577397255
+auroc,skin_tone_bin,3,0.9717629439152901
+auroc,skin_tone_bin,4,0.9667224235284797
+recall,skin_tone_bin,1,
+recall,skin_tone_bin,2,0.7586129148629149
+recall,skin_tone_bin,3,0.7701742891709406
+recall,skin_tone_bin,4,0.7881309369128427
+precision,capture_channel,clinic,0.8771564406645752

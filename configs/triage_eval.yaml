@@ -1,0 +1,59 @@
+experiment_name: triage_v_gate_v1
+seed: 42
+triage_labels:
+  urgent:
+  - melanoma
+  - melanoma_in_situ
+  - bcc
+  - basal cell carcinoma
+  - scc
+  - squamous cell carcinoma
+  - atypical_nevus
+  routine:
+  - benign_keratosis
+  - bkl
+  - dermatofibroma
+  - df
+  - nevus
+  - nv
+  - vascular_lesion
+  - vasc
+  - akiec
+  reassurance:
+  - lentigo
+  - lnt
+  - vascular
+  - normal_skin
+  - normal skin
+input_manifests:
+  baseline: data/quality/publication_manifest.csv
+quality_model:
+  checkpoint: models/snapcheck_quality.pt
+  threshold_strategy: per_label
+  thresholds_path: reports/diqa/thresholds.json
+vlm_backends:
+- name: gpt5_nano
+  type: openai
+  model: gpt-5-nano-2025-08-07
+  api_key_env: OPENAI_API_KEY
+  max_tokens: 800
+  reasoning:
+    effort: low
+  prompt_template: configs/prompts/diagnosis_singleline.txt
+simulation:
+  cache_responses: true
+  cache_dir: reports/triage/cache
+  random_subset: false
+  store_reasoning_traces: true
+  trace_dir: reports/triage/traces
+metrics:
+- name: triage_accuracy
+- name: urgent_recall
+- name: urgency_miss_rate
+- name: safe_reassurance_rate
+- name: token_usage
+- name: latency
+outputs:
+  summary_csv: reports/triage/triage_detail.csv
+  summary_backend_csv: reports/triage/triage_summary.csv
+  confusion_matrices_dir: reports/triage/confusion

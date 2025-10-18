@@ -1,0 +1,3 @@
+metric,value
+auroc_macro,0.9679868668693729
+ap_macro,0.8899574746673663

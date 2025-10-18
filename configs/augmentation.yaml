@@ -1,0 +1,94 @@
+# Base paths
+raw_dataset_dir: data/raw
+quality_dataset_dir: data/quality
+metadata_csv: data/metadata/master_metadata.csv
+
+# Source datasets
+sources:
+  - name: ham10000
+    images_glob: data/raw/ham10000/images/*.jpg
+    metadata: data/raw/ham10000/HAM10000_metadata.csv
+    image_id_key: image_id
+    diagnosis_key: dx
+  - name: derm7pt
+    images_glob: data/raw/derm7pt/images/*.jpg
+    metadata: data/raw/derm7pt/derm7pt_metadata.csv
+    image_id_key: case_num
+    diagnosis_key: diagnosis
+
+# Augmentation settings
+quality_defects:
+  blur:
+    kernel_sizes: [5, 7, 9]
+    sigma_range: [1.0, 3.0]
+  motion_blur:
+    kernel_sizes: [7, 9]
+    angle_range: [-35, 35]
+  brightness:
+    factor_range: [0.55, 1.35]
+  contrast:
+    factor_range: [0.6, 1.35]
+  noise:
+    std_range: [0.01, 0.05]
+  shadow:
+    intensity_range: [0.35, 0.6]
+    softness_range: [0.01, 0.04]
+    tint_range: [0.8, 0.95]
+  obstruction:
+    patch_sizes: [[0.15, 0.18], [0.25, 0.3]]
+  framing:
+    crop_range: [0.7, 0.9]
+  resolution:
+    downscale_factors: [0.3, 0.5]
+  zoom_out:
+    scale_range: [0.55, 0.8]
+    background: mean
+  zoom_in:
+    crop_scale_range: [0.35, 0.65]
+  color_cast:
+    shift_range: [0.08, 0.18]
+  compression:
+    quality_range: [35, 70]
+  vignette:
+    strength_range: [0.08, 0.18]
+  glare:
+    radius_range: [0.08, 0.18]
+    intensity_range: [0.25, 0.55]
+  hair:
+    count_range: [1, 3]
+    thickness_range: [1, 3]
+
+# Sampling
+base_images_per_source: 1200
+min_augmentations_per_image: 1
+max_augmentations_per_image: 3
+defect_weights:
+  blur: 1.4
+  motion_blur: 1.6
+  brightness: 1.2
+  contrast: 1.1
+  noise: 1.0
+  shadow: 0.8
+  obstruction: 0.8
+  framing: 0.7
+  resolution: 1.3
+  zoom_out: 1.0
+  zoom_in: 1.1
+  color_cast: 0.9
+  compression: 0.9
+  vignette: 0.8
+  glare: 0.7
+  hair: 0.6
+train_val_test_split: [0.7, 0.15, 0.15]
+seed: 1337
+
+# Fitzpatrick estimation
+skin_tone_estimator: huggingface:facebook/mask2former-swin-large-ade-semantic
+skin_patch_strategy: median_foreground_patch
+skin_tone_bins: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+
+# Output
+save_jsonl: true
+save_preview_grid: true
+preview_grid_size: 16
+num_workers: 8

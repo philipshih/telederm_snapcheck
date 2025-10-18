@@ -1,0 +1,4 @@
+outputs:
+  summary_csv: reports/triage/triage_detail.csv
+  summary_backend_csv: reports/triage/triage_summary.csv
+  confusion_matrices_dir: reports/triage/confusion

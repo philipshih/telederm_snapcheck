@@ -1,0 +1,46 @@
+﻿# Minimal config using HAM10000 subset only
+raw_dataset_dir: data/raw
+quality_dataset_dir: data/quality
+metadata_csv: data/raw/ham10000/HAM10000_metadata.csv
+
+sources:
+  - name: ham10000
+    images_glob: data/raw/ham10000/images/*.jpg
+    metadata: data/raw/ham10000/HAM10000_metadata.csv
+    lesion_id_key: image_id
+    diagnosis_key: dx
+
+quality_defects:
+  blur:
+    kernel_sizes: [5, 9, 13]
+    sigma_range: [1.0, 4.0]
+  motion_blur:
+    kernel_sizes: [7, 11]
+    angle_range: [0, 360]
+  brightness:
+    factor_range: [0.5, 1.5]
+  contrast:
+    factor_range: [0.5, 1.5]
+  noise:
+    std_range: [0.02, 0.08]
+  shadow:
+    intensity_range: [0.4, 0.7]
+    num_vertices_range: [3, 8]
+  obstruction:
+    patch_sizes: [[0.2, 0.2], [0.35, 0.35]]
+  framing:
+    crop_range: [0.7, 0.9]
+  resolution:
+    downscale_factors: [0.25, 0.5]
+
+base_images_per_source: 200
+max_augmentations_per_image: 3
+train_val_test_split: [0.7, 0.15, 0.15]
+seed: 1337
+
+skin_tone_estimator: brightness_proxy
+skin_patch_strategy: null
+skin_tone_bins: [0.0, 0.33, 0.66, 1.0]
+
+save_jsonl: true
+num_workers: 4

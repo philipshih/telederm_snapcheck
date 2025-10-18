@@ -1,0 +1,76 @@
+experiment_name: triage_v_gate_v1
+seed: 44
+triage_labels:
+  urgent:
+  - melanoma
+  - melanoma_in_situ
+  - bcc
+  - basal cell carcinoma
+  - scc
+  - squamous cell carcinoma
+  - vascular_lesion
+  - vasc
+  - atypical_nevus
+  - akiec
+  routine:
+  - benign_keratosis
+  - bkl
+  - dermatofibroma
+  - df
+  - nevus
+  - nv
+  reassurance:
+  - lentigo
+  - lnt
+  - vascular
+  - normal_skin
+  - normal skin
+input_manifests:
+  baseline: data/quality/test_manifest.csv
+quality_model:
+  checkpoint: models/snapcheck_quality.pt
+  threshold_strategy: per_label
+  thresholds:
+    blur: 0.259
+    motion_blur: 0.288
+    low_brightness: 0.098
+    high_brightness: 0.067
+    low_contrast: 0.027
+    high_contrast: 0.034
+    noise: 0.043
+    shadow: 0.168
+    obstruction: 0.772
+    framing: 0.049
+    low_resolution: 0.054
+    overall_fail: 0.5
+vlm_backends:
+- name: qwen2_vl_2b
+  type: huggingface
+  model_id: models/qwen2_vl_2b
+  device: cuda_if_available
+  max_new_tokens: 80
+  temperature: 0.0
+  torch_dtype: float16
+  device_map: auto
+  model_kwargs:
+    low_cpu_mem_usage: true
+  prompt_template: configs/prompts/diagnosis_singleline.txt
+simulation:
+  num_images: 10
+  cache_responses: true
+  cache_dir: reports/triage/cache
+  random_subset: true
+  store_reasoning_traces: true
+  trace_dir: reports/triage/traces
+  seed: 44
+metrics:
+- name: triage_accuracy
+- name: urgent_recall
+- name: urgency_miss_rate
+- name: safe_reassurance_rate
+- name: token_usage
+- name: latency
+outputs:
+  summary_csv: reports/triage/triage_detail_seed44.csv
+  summary_backend_csv: reports/triage/triage_summary_seed44.csv
+  confusion_matrices_dir: reports/triage/confusion_seed44

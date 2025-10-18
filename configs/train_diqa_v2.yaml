@@ -1,0 +1,66 @@
+experiment_name: snapcheck_diqa_v2
+seed: 1337
+
+quality_dataset_dir: data/quality
+train_csv: data/quality/train_manifest.csv
+val_csv: data/quality/val_manifest.csv
+test_csv: data/quality/test_manifest.csv
+label_columns:
+  - blur
+  - motion_blur
+  - low_brightness
+  - high_brightness
+  - low_contrast
+  - high_contrast
+  - noise
+  - shadow
+  - obstruction
+  - framing
+  - low_resolution
+  - overall_fail
+skin_tone_column: skin_tone_bin
+lesion_class_column: diagnosis
+
+architecture: vit_small_patch16_224
+pretrained: true
+num_classes: 12
+use_class_weights: true
+
+optimizer: adamw
+learning_rate: 5.0e-5
+weight_decay: 0.02
+max_epochs: 12
+batch_size: 32
+warmup_epochs: 1
+scheduler: cosine
+label_smoothing: 0.05
+mixup_alpha: 0.1
+cutmix_alpha: 0.0
+
+metrics:
+  - auroc
+  - average_precision
+  - f1_micro
+  - f1_macro
+  - calibration_error
+fairness_metrics:
+  - metric: auroc
+    group: skin_tone_bin
+  - metric: recall
+    group: skin_tone_bin
+  - metric: precision
+    group: capture_channel
+
+checkpoint_dir: models/checkpoints
+best_metric: auroc_macro
+save_top_k: 3
+report_dir: reports/diqa
+
+target_formats:
+  - torchscript
+  - onnx
+  - tflite
+quantization: dynamic
+
+device: cuda_if_available
+num_workers: 4

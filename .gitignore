@@ -1,0 +1,32 @@
+# Byte-compiled / temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+
+# Data and large artifacts
+data/
+models/
+hf_cache/
+reports/triage/runs/
+reports/triage/cache/
+reports/triage/traces/
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs and checkpoints
+*.log
+*.tmp
+*.bak
+
+# Misc project-specific
+.claude/

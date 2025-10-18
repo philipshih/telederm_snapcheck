@@ -1,0 +1,32 @@
+﻿experiment_name: snapcheck_diqa_quick
+seed: 1337
+
+quality_dataset_dir: data/quality
+train_csv: data/quality/train_manifest.csv
+val_csv: data/quality/val_manifest.csv
+test_csv: data/quality/test_manifest.csv
+label_columns:
+  - blur
+  - motion_blur
+  - low_brightness
+  - high_brightness
+  - low_contrast
+  - high_contrast
+  - noise
+  - shadow
+  - obstruction
+  - framing
+  - low_resolution
+  - overall_fail
+
+architecture: vit_tiny_patch16_224
+pretrained: true
+learning_rate: 5.0e-4
+weight_decay: 0.01
+max_epochs: 5
+batch_size: 16
+num_workers: 2
+
+fairness_metrics: []
+report_dir: reports/diqa_quick
+device: cpu
