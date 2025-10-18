@@ -89,6 +89,8 @@ Table 2. Performance shifts when synthetic defects are present. Metrics are limi
 ![Figure 3. Defect-driven urgent miss and deferral rates before and after quality gating.](reports/figures/figure3_defect_impact.png)
 *Figure 3. Top eight synthetic defects ranked by urgent miss reduction. Left panel shows miss rates; right panel shows urgent deferral rates for the same defects.*
 
+Although the brightness, contrast, noise, framing, and obstruction thresholds remained fixed at 1.0, the test-set rows still show sizeable deferral rates because every urgent image bearing those synthetic defects also carried at least one additional trigger (typically blur, low-resolution, or the aggregate overall-fail label). Retake actions therefore inherit from the co-occurring failure rather than the fixed threshold itself.
+
 Blur and low-light failures benefit from gate intervention (recall +4.5 and +11.1 percentage points respectively) because the pass image restores lesion detail before VLM review. Figure 3 also highlights how motion-blur cases show a modest recall drop because the gate routed 80% of those encounters to retake; the clean pass images improved safety, but most cases fall outside the triage denominator until a replacement image arrives. These observations reinforce the need for capture coaching alongside automated retake prompts.
 
 ### Fitzpatrick Skin Tone Performance
@@ -105,7 +107,7 @@ Blur and low-light failures benefit from gate intervention (recall +4.5 and +11.
 
 Table 3. Calibrated SnapCheck performance across ITA-derived Fitzpatrick bins (held-out test set).
 
-Urgent recall gains concentrate in the darker cohorts: Type VI improves by +5.0 percentage points (72.5%→77.5%) with a 17.4% retake rate, while Type V gains +5.0 points. Retake burden is higher for the small Type II subset (21.3%) because the gate routed seven of sixteen urgent encounters to retake; future calibration will smooth these small-sample swings.
+Urgent recall gains concentrate in the darker cohorts: Type VI improves by +6.3 percentage points (77.5%→83.8%) with an 18.7% retake rate, while Type V gains +4.3 points (67.4%→71.7%). Retake burden is higher for the small Type II subset (21.3%) because the gate routed seven of sixteen urgent encounters to retake; future calibration will smooth these small-sample swings.
 
 ### Monk Skin Tone Performance
 
@@ -145,7 +147,7 @@ SnapCheck currently provides the clearest lift for defects that systematically h
 To increase real-world impact we plan to collect dermatologist override labels in the VA teledermatology clinic, retrain the quality model on patient-generated photos, benchmark larger backbones, and pair SnapCheck with patient-facing guidance. These additions will help tune the retake/recall frontier defect-by-defect and anchor fairness audits in clinician-labelled skin tones rather than ITA proxies.
 
 ## Limitations
-Findings rely on synthetic degradations and paired pass images; real-world retakes may not match the cached performance gains. The held-out test set remains relatively small (1,344 evaluation exposures across 672 lesion pairs, 177 urgent lesions), so subgroup metrics—particularly those with fewer than 20 cases—carry wide confidence intervals. The conservative threshold strategy that capped retakes near 15% also limited the immediate recall lift, and latency estimates exclude user capture time. Accuracy remains modest relative to dermatology specialists, underscoring that the gate is a safety adjunct rather than a diagnostic system. Prospective studies with clinician overrides and patient-uploaded photos will be required to tune thresholds, confirm fairness, and assess workflow impact.
+Findings rely on synthetic degradations and paired pass images drawn from HAM10000 and Derm7pt; we have not yet benchmarked SnapCheck on fully external corpora such as SCIN or prospective patient-generated photographs, so real-world retakes may not match the cached performance gains. The held-out test set remains relatively small (1,344 evaluation exposures across 672 lesion pairs, 177 urgent lesions), so subgroup metrics—particularly those with fewer than 20 cases—carry wide confidence intervals. The conservative threshold strategy that capped retakes near 15% also limited the immediate recall lift, and latency estimates exclude user capture time. Accuracy remains modest relative to dermatology specialists, underscoring that the gate is a safety adjunct rather than a diagnostic system. Prospective studies with clinician overrides and patient-uploaded photos will be required to tune thresholds, confirm fairness, and assess workflow impact.
 
 ## Conclusion
 TeleDerm SnapCheck demonstrates that specialty-aware image quality gating can be operationalized alongside VLM triage and that calibrated thresholds deliver measurable urgent-sensitivity gains. Aligning retake burden with clinic capacity and validating performance on real submissions remain the key steps toward clinical deployment.
