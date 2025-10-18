@@ -1,7 +1,5 @@
 # TeleDerm SnapCheck: Automating Dermatology Image Quality Gating for Safer Teledermatology Triage
 
-![Workflow](reports/figures/telederm_snapcheck_workflow_v3.png)
-
 ## Abstract
 
 ### Background
@@ -71,20 +69,20 @@ Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shi
 
 ### Defect-Specific Impact
 
-| Synthetic Defect | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Retake Rate (Baseline) | Retake Rate (Gated) |
+| Synthetic Defect | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Urgent Deferral (Gated) | Retake Rate (Gated) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| overall_fail | 672 | 177 | 42.0% | 40.8% | 68.4% | 75.7% | 0.0% | 38.5% |
-| blur | 127 | 29 | 40.9% | 41.7% | 62.1% | 82.8% | 0.0% | 78.7% |
-| motion_blur | 127 | 34 | 44.9% | 38.6% | 76.5% | 82.4% | 0.0% | 92.1% |
-| low_resolution | 118 | 34 | 48.3% | 44.9% | 70.6% | 76.5% | 0.0% | 39.0% |
-| noise | 91 | 21 | 36.3% | 38.5% | 71.4% | 81.0% | 0.0% | 41.8% |
-| framing | 77 | 21 | 40.8% | 42.1% | 66.7% | 71.4% | 0.0% | 39.0% |
-| shadow | 65 | 15 | 40.0% | 38.5% | 73.3% | 80.0% | 0.0% | 33.8% |
-| low_brightness | 61 | 11 | 46.7% | 41.7% | 90.9% | 90.9% | 0.0% | 34.4% |
-| obstruction | 61 | 19 | 41.0% | 44.3% | 63.2% | 63.2% | 0.0% | 34.4% |
-| high_brightness | 54 | 13 | 40.7% | 35.2% | 76.9% | 76.9% | 0.0% | 33.3% |
-| low_contrast | 53 | 12 | 47.2% | 35.8% | 66.7% | 75.0% | 0.0% | 41.5% |
-| high_contrast | 48 | 11 | 39.6% | 37.5% | 63.6% | 63.6% | 0.0% | 20.8% |
+| overall_fail | 672 | 177 | 42.0% | 40.8% | 68.4% | 75.7% | 38.4% | 38.5% |
+| blur | 127 | 29 | 40.9% | 41.7% | 62.1% | 82.8% | 86.2% | 78.7% |
+| motion_blur | 127 | 34 | 44.9% | 38.6% | 76.5% | 82.4% | 94.1% | 92.1% |
+| low_resolution | 118 | 34 | 48.3% | 44.9% | 70.6% | 76.5% | 38.2% | 39.0% |
+| noise | 91 | 21 | 36.3% | 38.5% | 71.4% | 81.0% | 38.1% | 41.8% |
+| framing | 77 | 21 | 40.8% | 42.1% | 66.7% | 71.4% | 42.9% | 39.0% |
+| shadow | 65 | 15 | 40.0% | 38.5% | 73.3% | 80.0% | 26.7% | 33.8% |
+| low_brightness | 61 | 11 | 46.7% | 41.7% | 90.9% | 90.9% | 54.5% | 34.4% |
+| obstruction | 61 | 19 | 41.0% | 44.3% | 63.2% | 63.2% | 26.3% | 34.4% |
+| high_brightness | 54 | 13 | 40.7% | 35.2% | 76.9% | 76.9% | 23.1% | 33.3% |
+| low_contrast | 53 | 12 | 47.2% | 35.8% | 66.7% | 75.0% | 25.0% | 41.5% |
+| high_contrast | 48 | 11 | 39.6% | 37.5% | 63.6% | 63.6% | 9.1% | 20.8% |
 
 Table 2. Performance shifts when synthetic defects are present. Metrics are limited by the small number of urgent cases within each defect cohort.
 
