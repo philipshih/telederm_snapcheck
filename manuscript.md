@@ -68,7 +68,7 @@ Table 1. Aggregate triage metrics for 1,344 evaluation exposures (672 lesion pai
 Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shifted from 40.4% (95% CI 37.8–43.1) in the ungated arm to 40.1% (95% CI 37.5–42.7) with SnapCheck. Urgent recall increased from 73.7% (95% CI 68.9–78.0) to 76.6% (95% CI 71.9–80.7), while the urgent miss rate fell from 26.3% to 8.2% (−69% relative). The gate recommended retakes for 14.5% of encounters (95% CI 12.7–16.5), deferred 15.3% of urgent exposures for retake follow-up (95% CI 11.9–19.4), and flagged 195 of 672 degraded images (29.0% coverage). Figure 2 visualises the trade-off introduced by SnapCheck.
 
 ![Figure 2. SnapCheck halves urgent misses while introducing a managed retake/deferral queue.](reports/figures/figure2_overall_gains.png)
-*Figure 2. Comparison of baseline GPT-5 Nano triage versus SnapCheck-gated triage on the 1,344-exposure paired test cohort. Bars show the percentage of urgent misses, urgent recall, urgent deferrals, and retake recommendations.*
+*Figure 2. Comparison of baseline GPT-5 Nano triage versus SnapCheck-gated triage on the 1,344-exposure paired test cohort.*
 
 ### Defect-Specific Impact
 
@@ -90,7 +90,7 @@ Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shi
 Table 2. Performance shifts when synthetic defects are present. Metrics are limited by the small number of urgent cases within each defect cohort.
 
 ![Figure 3. Defect-driven urgent miss and deferral rates before and after quality gating.](reports/figures/figure3_defect_impact.png)
-*Figure 3. Top eight synthetic defects ranked by urgent miss reduction. Left panel shows miss rates; right panel shows urgent deferral rates for the same defects.*
+*Figure 3. Top eight synthetic defects ranked by urgent miss reduction.*
 
 While calibration for brightness, contrast, noise, and framing thresholds remained fixed at 1.0, the test-set rows still show sizeable deferral rates because every urgent images with these synthetic defects also carried at least one additional trigger. Retake actions for images with these deficits therefore inherit from co-occurring image quality deficits rather than the fixed threshold itself.
 
