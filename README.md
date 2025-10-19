@@ -19,6 +19,8 @@ We show that a lightweight, defect-aware image-quality gate can reduce urgent mi
 Quality gating improves sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting a safety gain that does not widen observed disparities.
 Blur, low-resolution, and noise account for the majority of avertable misses; motion blur predominantly requires deferral, motivating defect-specific capture coaching.
 
+This is the first study to demonstrate successful implementation of a DIQA tool for VLMs, quantify safety-efficiency tradeoffs, and to identify which image deficits most strongly impact VLM triage performance.
+
 ## Getting Started
 
 1. Create a virtual environment and install requirements.
