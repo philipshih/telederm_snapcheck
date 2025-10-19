@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.jpg" alt="TeleDerm SnapCheck logo" width="200">
+  <img src="snapcheck/logo.jpg" alt="TeleDerm SnapCheck logo" width="200">
 </p>
 
 # TeleDerm SnapCheck
