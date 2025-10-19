@@ -1,7 +1,7 @@
 # TeleDerm SnapCheck: Automating Dermatology Image Quality Gating for Safer Teledermatology Triage
-Philip E Shih M.S^(1)
+Philip E Shih M.S$^{1}$
 
-^(1)School of Medicine, University of California San Francisco. San Francisco, California, USA
+$^{1}$School of Medicine, University of California San Francisco. San Francisco, California, USA
 
 ## Abstract
 
