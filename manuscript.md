@@ -9,7 +9,7 @@ Philip E Shih, M.S.<sup>1</sup>
 Teledermatology programs rely on patient-submitted photos that frequently suffer from blur, shadowing, or framing errors, undermining downstream clinical decision support. Manual screening is labor-intensive and inconsistently applied.
 
 ### Objective
-We test whether an automated DIQA gate can lower urgent-miss risk for vision-language triage models while maintaining acceptable retake burden.
+We test whether an automated dermatologic image quality assessment (DIQA) gate can lower urgent-miss risk for vision-language triage models (VLMs) while maintaining acceptable retake burden.
 
 ### Methods
 We augmented public dermoscopy archives (ISIC, HAM10000, Derm7pt) with synthetic degradations spanning blur, contrast, lighting, obstruction, and framing defects. A ViT-Small multi-label classifier was trained on paired pass and fail images (BCE-with-logits loss, cosine LR schedule). Thresholds were recalibrated offline on 671 validation pass/fail pairs using cached GPT-5 Nano predictions, then frozen and evaluated once on 672 pass/fail lesion pairs (1,344 exposures) in the held-out test manifest. The calibrated gate is integrated into a scripted GPT-5 Nano triage harness that compares baseline versus gated reasoning over identical image subsets. Primary endpoints were urgent recall, urgency miss rate, and retake or deferral burden; secondary endpoints included fairness slices and defect-specific performance.
