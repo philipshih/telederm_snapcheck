@@ -25,7 +25,7 @@ Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 - Model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
 - Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
 
-© {2025} {Philip Shih}. Released under the MIT License. 
+© 2025 Philip Shih. Released under the MIT License. 
 
 Unless stated otherwise:
 - **Ownership**: All original code in this repo is owned by Philip Shih.
