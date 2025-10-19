@@ -11,15 +11,13 @@ Unless stated otherwise:
 - **Third-party content**: This project may reference or include third-party code or assets that are subject to their own licenses.
 - **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
 
-TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance is assessed with and without a calibrated ViT DIQA gate.
+TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public dermoscopy datasets, and VLM performance is assessed with and without a calibrated ViT DIQA gate. This is the first study to demonstrate successful implementation of a DIQA tool for VLMs, quantify safety-efficiency tradeoffs, and to identify which image deficits most strongly impact VLM triage performance.
 
 > **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
-We show that a lightweight, defect-aware image-quality gate can reduce urgent misses by 69% relative (26.3%→8.2%) under a ≤15% retake budget, by deferring only the highest-risk degradations and substituting paired clean frames when available.
-Quality gating improves sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting a safety gain that does not widen observed disparities.
-Blur, low-resolution, and noise account for the majority of avertable misses; motion blur predominantly requires deferral, motivating defect-specific capture coaching.
-
-This is the first study to demonstrate successful implementation of a DIQA tool for VLMs, quantify safety-efficiency tradeoffs, and to identify which image deficits most strongly impact VLM triage performance.
+We show that a lightweight, defect-aware DIQA gate can reduce urgent misses by 69% relative (26.3%→8.2%) under a ≤15% retake budget, deferring only the highest-risk degradations and substituting paired clean frames when available.
+DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting a gain in triage accuracy that does not widen observed disparities.
+Blur, low-resolution, and noise account for the majority of misses that improved with DIQA gating. Motion blur predominantly required deferral and suggests a need for defect-specific capture coaching.
 
 ## Getting Started
 
@@ -34,7 +32,6 @@ Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 
 ## In Progress
 
-- Validation of SnapCheck on an external patient-generated teledermatology cohort (e.g., SCIN)
-- Model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
+- Validation on an external patient-generated teledermatology cohort (e.g., SCIN)
+- VLM model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
 - Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
-
