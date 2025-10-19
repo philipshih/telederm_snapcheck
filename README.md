@@ -3,6 +3,15 @@
 </p>
 
 # TeleDerm SnapCheck
+© 2025 Philip Shih. Released under the MIT License. 
+
+Unless stated otherwise:
+- **Ownership**: All original code in this repo is owned by Philip Shih.
+- **Trademarks**: All product and company names are trademarks™ or registered® trademarks of their respective holders. Use does not imply endorsement.
+- **Third-party content**: This project may reference or include third-party code or assets that are subject to their own licenses.
+- **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
+
+_No warranty is provided; use at your own risk._
 
 TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance is assessed with and without a calibrated ViT DIQA gate.
 
@@ -25,12 +34,3 @@ Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 - Model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
 - Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
 
-© 2025 Philip Shih. Released under the MIT License. 
-
-Unless stated otherwise:
-- **Ownership**: All original code in this repo is owned by Philip Shih.
-- **Trademarks**: All product and company names are trademarks™ or registered® trademarks of their respective holders. Use does not imply endorsement.
-- **Third-party content**: This project may reference or include third-party code or assets that are subject to their own licenses.
-- **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
-
-_No warranty is provided; use at your own risk._
