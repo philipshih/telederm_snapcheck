@@ -4,7 +4,7 @@
 
 # TeleDerm SnapCheck
 
-TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance is assessed with and without a calibrated ViT-based gate.
+TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public datasets, and VLM performance is assessed with and without a calibrated ViT DIQA gate.
 
 > **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
@@ -21,5 +21,6 @@ Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 
 ## In Progress
 
-- Validate SnapCheck on a fully external patient-generated cohort (e.g., SCIN/Path) to confirm safety gains outside HAM10000/Derm7pt synthetic pairs.
+- Validation of SnapCheck on a fully external patient-generated cohort (e.g., SCIN/Path) to confirm safety gains outside HAM10000/Derm7pt synthetic pairs.
+- Model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
 - Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
