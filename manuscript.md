@@ -1,5 +1,5 @@
 # TeleDerm SnapCheck: Automating Dermatology Image Quality Gating for Safer Teledermatology Triage
-
+Philip Shih
 ## Abstract
 
 ### Background
