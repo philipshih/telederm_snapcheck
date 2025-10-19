@@ -34,7 +34,7 @@ Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
 
 ## In Progress
 
-- Validation of SnapCheck on a fully external patient-generated cohort (e.g., SCIN/Path) to confirm safety gains outside HAM10000/Derm7pt synthetic pairs.
+- Validation of SnapCheck on an external patient-generated teledermatology cohort (e.g., SCIN)
 - Model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
 - Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
 
