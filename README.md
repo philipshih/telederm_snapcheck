@@ -15,6 +15,10 @@ TeleDerm SnapCheck explores how automated dermatology image-quality gating impac
 
 > **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
+We show that a lightweight, defect-aware image-quality gate can reduce urgent misses by 69% relative (26.3%→8.2%) under a ≤15% retake budget, by deferring only the highest-risk degradations and substituting paired clean frames when available.
+Quality gating improves sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting a safety gain that does not widen observed disparities.
+Blur, low-resolution, and noise account for the majority of avertable misses; motion blur predominantly requires deferral, motivating defect-specific capture coaching.
+
 ## Getting Started
 
 1. Create a virtual environment and install requirements.
