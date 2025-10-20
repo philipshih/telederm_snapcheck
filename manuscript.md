@@ -1,4 +1,5 @@
 # TeleDerm SnapCheck: DIQA Gating for Safer Teledermatology Triage
+Philip Shih, M.S.
 
 ## Abstract
 
@@ -107,8 +108,6 @@ Figure 3 demonstrates how motion-blur cases show a modest recall drop because th
 
 Table 3. Calibrated SnapCheck performance across ITA-derived Fitzpatrick bins (held-out test set).
 
-Urgent recall gains in Type VI improved by +6.3 percentage points (77.5% to 83.8%) with an 18.7% retake rate, while Type V gained +4.3 points (67.4% to 71.7%).
-
 ### Monk Skin Tone Performance
 
 | Monk Skin Tone | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Urgent Deferral (Baseline) | Urgent Deferral (Gated) | Retake Rate (Baseline) | Retake Rate (Gated) |
@@ -133,28 +132,23 @@ Urgent recall gains in Type VI improved by +6.3 percentage points (77.5% to 83.8
 
 Table 4. Calibrated SnapCheck performance across Monk Skin Tone bins (1=lighter, 10=darker; held-out test set).
 
-Monk grouping trends are similar to Fitzpatrick trends: MST 8-10 gains +5.4 urgent-recall points (70.7% to 76.1%) with an 18.5% retake rate, while lighter MST 1-3 tones remain within 3.3 points of baseline recall (76.3% to 79.6%). Figure 4 shows urgent miss reductions persist across all three tone groupings.
-
 ## Discussion
 DIQA gating provides a performance improvement in VLM-based identification of urgent cases in publicly-sourced dermascopy images. Urgent misses fall from 26.3% to 8.2% (a 69% relative reduction) while urgent recall increases by 2.9 percentage points (73.7% to 76.6%). The gate introduces a 14.5% retake burden (195 of 1,344 encounters) and defers 15.3% of urgent exposures (54 lesions) for manual follow-up, covering 29% of deficient inputs without modifying VLM weights. Notably, Type VI Fitzpatrick lesions gained +6.3 urgent-recall points (77.5% to 83.8%) and Monk Skin Tone 8-10 gained +5.4 points (70.7% to 76.1%) with retake rates under 20%, indicating that DIQA, when paired with VLMs, can raise VLM triage sensitivity without widening observed skin-tone disparities.
 
-Gating demonstrated the most improvement for defects that obscured lesion detail systematically. Blur exposures gained 20.7 urgent-recall points (62.1% to 82.8%), noise cohorts gained 9.6 points (71.4% to 81.0%), and low-resolution failures gained 5.9 points (70.6% to 76.5%) with acceptable retake burden. Motion blur, by contrast, remains dominated by deferrals (92.1% retake rate). These findings suggest a need for more adaptive thresholding or capture coaching that assists patients in capturing defect-free shots before manual review.
+Gating demonstrated the most improvement for defects that obscured lesion detail systematically. Blur exposures gained 20.7 urgent-recall points (62.1% to 82.8%), noise cohorts gained 9.6 points (71.4% to 81.0%), and low-resolution failures gained 5.9 points (70.6% to 76.5%) with acceptable retake burden. Motion blur, by contrast, remains dominated by deferrals (92.1% retake rate). These findings suggest that adaptive thresholding or capture coaching may be necessary for effectively assessing images with these defect types.
 
 A DIQA tool such as SnapCheck may act as a configurable guardrail for image degradations that cause urgent misses in the teledermatology setting. The overall modest +2.9 percentage-point recall lift is consistent with the thresholds we selected. Blur and low-resolution cutoffs were tuned to keep retakes <=15%, while exposure, contrast, noise, shadow, framing, and overall fail triggers were fixed at 1.0. This configuration routed 54 of 177 urgent lesions through the gate but sent almost every urgent motion-blur case into the retake queue. This behavior maximizes safety, which would be desirable clinically, but also decreases immediate recall performance.
 
-Real-world applicability could be assessed by including dermatologist override labels in real-world practice settings, retraining on patient-generated photos, and/or modifying SnapCheck to provide patient-facing retake recommendations to assess utility. These could further optimize accuracy of retake/recall assignments and anchor fairness auditing through dermatologist-confirmed labels, rather than the ITA proxies used in our study.
+Real-world applicability could be assessed by including dermatologist override labels in real-world practice settings, retraining on patient-generated photos, and/or modifying SnapCheck to provide patient-facing retake recommendations to assess utility. These could further optimize accuracy of retake/recall assignments and anchor fairness auditing through dermatologist-confirmed labels rather than the ITA proxies used in our study.
 
 ## Limitations
-Our findings rely on synthetic degradations and paired pass images drawn from HAM10000 and Derm7pt. We have not yet benchmarked SnapCheck on external teledermatology datasets such as SCIN or prospective patient-generated photographs; only on the held-out images from dermoscopy datasets. As such, similar performance gains may not be observed when real-world teledermatology retakes are used. Our held-out test set also remains relatively small (1,344 evaluation exposures across 672 lesion pairs, 177 urgent lesions), so subgroup metrics, particularly those with fewer than 20 cases, show wide confidence intervals. Our conservative threshold strategy capped retakes near 15% which also limits recall metric applicability. Overall diagnostic accuracy remains modest with and without gating at around 40%, likely due to our use of a distilled VLM (GPT-5 Nano) and the fact that the VLM in our study was implemented as a safety adjunct rather than as a true diagnostic system. 
+Our findings rely on the use of synthetically degraded photos and paired pass images drawn from HAM10000 and Derm7pt. We have not yet benchmarked SnapCheck on external teledermatology datasets such as SCIN or prospective patient-generated photographs; only on the held-out images from dermoscopy datasets. As such, similar performance gains may not be observed when real-world teledermatology retakes are used. Our held-out test set also remains relatively small (1,344 evaluation exposures across 672 lesion pairs, 177 urgent lesions), so subgroup metrics, particularly those with fewer than 20 cases, show wide confidence intervals. Our conservative threshold strategy capped retakes near 15% which also limits recall metric applicability. Overall diagnostic accuracy remains modest with and without gating at around 40%, likely due to our use of a distilled VLM (GPT-5 Nano) and the fact that the VLM in our study was implemented as a safety adjunct rather than as a true diagnostic system. 
 
 ## Conclusion
-TeleDerm SnapCheck demonstrates that DIQA can be implemented alongside VLM triage, and that calibrated thresholds deliver measurable urgent sensitivity gains for VLMs. Prospective studies with dermatologist assessments and patient-uploaded photos would assist in further optimizing thresholds and confirming fairness across skin types.
+TeleDerm SnapCheck demonstrates that DIQA can be implemented alongside VLM triage, and that calibrated thresholds deliver measurable urgent sensitivity gains for VLMs. Prospective studies with dermatologist assessments and patient-uploaded photos would assist in optimizing thresholds and confirming fairness across skin types.
 
 ## Ethics and Data Availability
 All experiments were conducted on deidentified public dermoscopy datasets under research-friendly licenses (ISIC 2020, HAM10000, Derm7pt). No IRB approval was required. Synthetic degradations were generated in-house without accessing protected health information. Source code, VLM prompts, configuration files, and aggregate metrics are available in this repo, and cached VLM responses are also provided for independent replication.
-
-## Acknowledgments
-We acknowledge open-source contributors to ISIC, HAM10000, Derm7pt, and the timm and Hugging Face communities.
 
 ## Data and Code Availability
 All scripts, configurations, and checkpoints are available in this repository. Public datasets are accessible via their respective licenses.
