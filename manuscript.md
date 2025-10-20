@@ -33,7 +33,7 @@ TeleDerm SnapCheck addresses this gap by synthesizing dermatology-specific defec
 ### Data Sources and Augmentation
 We curated public dermoscopy datasets (ISIC 2020, HAM10000, Derm7pt) and generated paired pass and fail crops. The augmentation engine injects blur, motion blur, exposure shifts, contrast shifts, shadow occlusion, obstructions, cropping or framing errors, and resolution downscaling. Metadata tracks augmentation strengths plus ITA-derived Fitzpatrick (I-VI) and Monk Skin Tone (1–10) bins alongside capture channel (clinic versus patient-generated).
 
-### Urgent Triage Label Assignments
+### Triage Label Assignments
 Source datasets provide histopathology-confirmed diagnoses or expert adjudications. We mapped melanoma (including melanoma in situ), basal cell carcinoma (basal cell carcinoma and its “bcc” synonym), and squamous cell carcinoma labels to the “urgent” triage category. Nevi, benign keratoses, vascular lesions, and related benign entities were mapped to the “routine” category, while lentiginous or normal-skin labels were mapped to “reassurance.” Ambiguous or missing diagnoses were excluded from the urgent denominator. This deterministic mapping enables transparent reconstruction of the triage ground truth.
 
 ### Quality Model Training
