@@ -33,7 +33,7 @@ TeleDerm SnapCheck addresses this gap by synthesizing dermatology-specific defec
 ### Data Sources and Augmentation
 We curated public dermoscopy datasets (ISIC 2020, HAM10000, Derm7pt) and generated paired pass and fail crops. The augmentation engine injects blur, motion blur, exposure shifts, contrast shifts, shadow occlusion, obstructions, cropping or framing errors, and resolution downscaling. Metadata tracks augmentation strengths plus ITA-derived Fitzpatrick (I-VI) and Monk Skin Tone (1–10) bins alongside capture channel (clinic versus patient-generated).
 
-### Urgent Triage Label Derivation
+### Urgent Triage Label Assignments
 Source datasets provide histopathology-confirmed diagnoses or expert adjudications. We mapped melanoma (including melanoma in situ), basal cell carcinoma (basal cell carcinoma and its “bcc” synonym), and squamous cell carcinoma labels to the “urgent” triage category. Nevi, benign keratoses, vascular lesions, and related benign entities were mapped to the “routine” category, while lentiginous or normal-skin labels were mapped to “reassurance.” Ambiguous or missing diagnoses were excluded from the urgent denominator. This deterministic mapping enables transparent reconstruction of the triage ground truth.
 
 ### Quality Model Training
@@ -45,10 +45,10 @@ Initial per-defect probability thresholds were selected from validation curves a
 ### Evaluation Cohort and Leakage Controls
 The synthetic evaluation cohort comprises 4,800 dermoscopy images: 2,400 pristine captures and 2,400 quality-deficient counterparts sampled after removing duplicate image identifiers and ambiguous diagnoses. Although the public archives contain roughly 10,000 unique lesions, we restricted the study to cases with histopathology-confirmed diagnoses and clear urgent mappings, then generated pass/fail pairs to cap inference and caching costs. Each fail image retains a pointer to its pristine partner. During evaluation, the gate replaces the degraded frame with its paired pass image for retake simulation, while baseline predictions continue to use the original fail image. Calibration relied solely on the 671-pair validation split, and all summary metrics reported below come from a single replay on the held-out 672 pass/fail lesion pairs (1,344 exposures). Prospective clinical data will be required to confirm performance on real-world submissions.
 
-### Triage Simulation Harness
+### Triage Simulation
 We configured the GPT-5 Nano vision-language model via the OpenAI API, generating dermatologic diagnoses mapping to predetermined triage labels (reassurance, routine, urgent). The simulator runs matched baseline and quality-gated conditions over identical image subsets. Metrics include triage accuracy, urgent recall, urgency miss rate, urgent deferral rate, and retake rate, latency and token usage.
 
-### AI System Transparency
+### VLM Configuration
 All triage calls used the GPT-5 Nano Responses API (release 2025-08-07) with deterministic decoding (temperature 0.0, top-p 1.0, reasoning effort “low”) and the single-turn prompt defined in `configs/prompts/diagnosis_singleline.txt`. Safety filters and content moderation flags remained enabled. Full prompts, configuration files, and cached outputs are deposited in the project repository for reproducibility.
 
 ### Statistical Analysis
@@ -70,7 +70,7 @@ Bootstrapped 95% confidence intervals (2,000 resamples) showed that accuracy shi
 ![Figure 2. SnapCheck halves urgent misses while introducing a managed retake/deferral queue.](reports/figures/figure2_overall_gains.png)
 *Figure 2. Comparison of baseline GPT-5 Nano triage versus SnapCheck-gated triage on the 1,344-exposure paired test cohort.*
 
-### Defect-Specific Impact
+### Defect-Specific Impacts
 
 | Synthetic Defect | Total Cases | Urgent Cases | Accuracy (Baseline) | Accuracy (Gated) | Urgent Recall (Baseline) | Urgent Recall (Gated) | Urgent Deferral (Gated) | Retake Rate (Gated) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
