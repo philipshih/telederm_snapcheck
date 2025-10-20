@@ -7,7 +7,6 @@
 
 Unless stated otherwise:
 - **Ownership**: All original code in this repo is owned by Philip Shih.
-- **Trademarks**: All product and company names are trademarks™ or registered® trademarks of their respective holders. Use does not imply endorsement.
 - **Third-party content**: This project may reference or include third-party code or assets that are subject to their own licenses.
 - **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
 
