@@ -1,7 +1,4 @@
 # TeleDerm SnapCheck: DIQA Gating for Safer Teledermatology Triage
-Philip E Shih, M.S.<sup>1</sup>
-
-<sup>1</sup> School of Medicine, University of California San Francisco. San Francisco, California, USA
 
 ## Abstract
 
