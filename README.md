@@ -14,7 +14,7 @@ TeleDerm SnapCheck explores how automated dermatology image-quality gating impac
 
 > **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
-We show that a lightweight, defect-aware DIQA gate can reduce urgent misses by 69% (26.3%→8.2%) while requiring <15% retakes, deferring only the highest-risk degradations and substituting paired cleaned images to represent successful patient retakes.
+We show that a lightweight, defect-aware DIQA gate can reduce urgent misses by 69% (26.3%→8.2%) while requiring <15% retakes, deferring only the highest-risk degradations and substituting paired cleaned images to represent successful retakes.
 DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting gating improves triage accuracy without widening observed disparities.
 Blur, low-resolution, and noise account for the majority of misses that improved with DIQA gating. Motion blur predominantly required deferral and suggests need for defect-specific capture coaching.
 
@@ -27,10 +27,10 @@ Blur, low-resolution, and noise account for the majority of misses that improved
 5. Run the triage simulation: `python scripts/run_triage_simulation.py --config configs/triage_eval.yaml`.
 6. Regenerate tables/figures: `python scripts/analyze_triage_breakdowns.py` followed by `scripts/format_triage_publication_tables.py`.
 
-Progress milestones and writing tasks are tracked in `docs/publication_plan.md`.
+Milestones and writing tasks tracked in `docs/publication_plan.md`.
 
 ## In Progress
 
-- Validation on an external patient-generated teledermatology cohort (e.g., SCIN)
-- VLM model performance comparisons: Gemini 2.5 Pro, GPT-5-20250807, Qwen3.
-- Package reproducibility artifacts (model checksums, augmentation manifests, notebooks).
+- Validation on external teledermatology cohorts
+- VLM model performance comparisons
+- Package reproducibility artifacts
