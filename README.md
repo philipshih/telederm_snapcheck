@@ -10,13 +10,12 @@ Unless stated otherwise:
 - **Third-party content**: This project may reference or include third-party code or assets that are subject to their own licenses.
 - **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
 
-TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public dermoscopy datasets, and VLM performance is assessed with and without a calibrated ViT DIQA gate. This is the first study to demonstrate successful implementation of a DIQA tool for VLMs, quantify safety-efficiency tradeoffs, and to identify which specific types of image deficits most strongly impact VLM triage performance.
+TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. Synthetic quality defects are applied to public dermoscopy datasets, and VLM performance is assessed with/without a calibrated ViT DIQA gate. This is the first study to demonstrate successful use of a DIQA gate for VLMs, assess efficiency tradeoff, and identify the type of image defect that most strongly impacts VLM triage performance.
 
-> **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent misses from 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
+> **Latest paired-test result (1,344 exposures):** SnapCheck cuts urgent miss rate of a VLM by 26.3 % to 8.2 % and raises urgent recall from 73.7 % to 76.6 %. The trade-off is a 14.5 % retake workload and 15.3 % urgent deferrals, covering 29 % of degraded inputs before clinician review (see `manuscript.md`).
 
-We show that a lightweight, defect-aware DIQA gate can reduce urgent misses by 69% (26.3%→8.2%) while requiring <15% retakes, deferring only the highest-risk degradations and substituting paired cleaned images to represent successful retakes.
-DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden, suggesting gating improves triage accuracy without widening observed disparities.
-Blur, low-resolution, and noise account for the majority of misses that improved with DIQA gating. Motion blur predominantly required deferral and suggests need for defect-specific capture coaching.
+We show that a ViT image quality gate reduces urgent miss rate by 69% (26.3%→8.2%) when set to reject 15% of images based on their degree of quality. This is done through a synthetic degradation pipeline and public skin image datasets. 
+DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden. Of all defect types, motion blur resulted in the highest retake burden. This may suggest interventions against camera movement are most important when preparing images for teledermatologic triage involving current VLM-based diagnostic systems.
 
 ## Getting Started
 
