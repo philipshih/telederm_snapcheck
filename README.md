@@ -11,7 +11,8 @@ Unless stated otherwise:
 - **Contributions**: By submitting a contribution, you agree it’s your own work (or you have the right to submit it) and you license it under the repository’s license.
 
 TeleDerm SnapCheck explores how automated dermatology image-quality gating impacts downstream teledermatology triage safety. We apply synthetic quality defects to public dermoscopy and teledermatology datasets, then assess VLM performance with/without a calibrated ViT DIQA gate. This is the first study to demonstrate successful use of a DIQA gate for VLMs and assess how image defects impact VLM diagnostic performance.
-We show that a ViT image quality gate reduces urgent miss rate by 69% (26.3%→8.2%) when set to reject 15% of images based on their degree of quality. This is done through a synthetic degradation pipeline and public skin datasets. DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden. Of all defect types, motion blur resulted in the highest retake burden. This may suggest intervention against camera movement during capture is most important for triage workflows involving VLM-based diagnostic systems.
+
+The ViT image quality gate reduced urgent miss rate by 69% (26.3%→8.2%) when set to reject 15% of images based on their degree of quality. DIQA gating improved sensitivity for darker skin tones (Fitz VI +6.3 pts; MST 8–10 +5.4 pts) without increasing retake burden. Of all defect types, motion blur resulted in the highest retake burden. This may suggest interventions against camera movement during capture are most important in store-and-forward teledermatology triage workflows that use VLMs.
 
 ## Getting Started
 
